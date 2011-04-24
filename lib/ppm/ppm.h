@@ -1,0 +1,1 @@
+#ifndef __PPM__#define __PPM__unsigned char *readPPM(char *fname, int *x, int *y);void writePPM(char *fname, unsigned char *buf, int x, int y);unsigned char *readPGM(char *fname, int *x, int *y);void writePGM(char *fname, unsigned char *buf, int x, int y);#endif

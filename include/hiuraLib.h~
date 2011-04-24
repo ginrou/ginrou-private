@@ -1,0 +1,6 @@
+#include "lib/complex.h"
+#include "lib/fourier.h"
+//#include "lib/glui.h"
+#include "lib/matrix.h"
+#include "lib/ppm.h"
+#include "lib/socket.h"

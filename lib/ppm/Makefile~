@@ -1,0 +1,30 @@
+OBJ_DIR    = .
+SRC_DIR    = .
+INS_DIR    = ..
+SMP_DIR    = .
+
+CC         = gcc
+CFLAGS     = $(OPTIMIZE) $(INCLUDES) $(DEFINES)
+LFLAGS     = $(LIBS) $(LIBDIR)
+
+INCLUDES   = -I$(INS_DIR)
+
+TARGET     = $(OBJ_DIR)/fourier.o $(SMP_DIR)/filter
+
+LIBDIR     = -L../
+LIBS       = -lm
+
+# ----- ルール ------
+
+all: $(TARGET)
+
+clean:
+	rm $(TARGET)
+
+$(SMP_DIR)/filter: filter.c $(OBJ_DIR)/fourier.o
+	$(CC) $(CFLAGS) -o $(SMP_DIR)/filter filter.c $(LFLAGS) fourier.o ../complex.o
+
+$(OBJ_DIR)/fourier.o: $(SRC_DIR)/fourier.c
+	$(CC) -c $(SRC_DIR)/fourier.c $(CFLAGS) -o $(OBJ_DIR)/fourier.o
+
+

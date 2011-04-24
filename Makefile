@@ -1,0 +1,53 @@
+# Makefile of research program
+
+##ディレクトリ
+OBJ_DIR = bin
+SRC_DIR = src
+INCLUDE_DIR = src
+LIB_DIR = lib
+
+MAINFILE = main.c
+TARGET = ${MAINFILE:.c=.out}
+SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c
+OBJS := ${SRCS:.c=.o}
+OBJS := ${addprefix ${OBJ_DIR}/, ${OBJS}}
+
+
+#日浦先生にもらったソースのライブラリ
+HIURA_LIB_FLAG =  -Llib -Ilib
+HIURA_LIB = complex.o fourier.o matrix.o ppm.o
+HIURA_LIB := ${addprefix ${LIB_DIR}/, ${HIURA_LIB}}
+
+
+#OpenCVを追加する時
+# オブジェクトファイルの生成はCVFLAGS
+# リンクするときはCVLIBS
+CVFLAGS = `pkg-config --cflags opencv` 
+CVLIBS = `pkg-config --libs opencv`
+
+#マクロ定義
+CC = gcc
+CFLAGS =-std=c99 -m64 \
+	-I${INCLUDE_DIR} ${HIURA_LIB_FLAG}
+DEBUG = -g -O0
+CLIBFLAGS = -lm  -lHiura -lstdc++ #リンクするもの
+
+##生成規則
+
+# TARGET (最終的な実行可能ファイル)
+${TARGET}:${OBJS} ${HIURA_LIB}
+	${CC} ${CFLAGS} -o $@  ${DEBUG} ${CVLIBS} ${CLIBFLAGS} \
+${OBJS} 
+
+# main.c のみ別方法で
+${OBJ_DIR}/${MAINFILE:.c=.o}:${MAINFILE}
+	${CC} $< ${CFLAGS} -c -o $@ ${DEBUG} ${CVFLAGS}	
+
+#サフィックスルール
+${OBJ_DIR}/%.o:${SRC_DIR}/%.c
+	${CC} $<  ${CFLAGS} -c -o $@  ${DEBUG} ${CVFLAGS}
+
+
+
+clean:
+	rm -f ${TARGET} ${OBJS}

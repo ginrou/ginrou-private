@@ -1,0 +1,15 @@
+#ifndef __FOURIER__
+#define __FOURIER__
+
+#define SIZE 256
+
+#include <complex.h>
+
+void fourier(Complex out[][SIZE],  unsigned char in[][SIZE] );
+void fourierInverse( unsigned char out[][SIZE], Complex in[][SIZE]);
+void fourierSpectrumImage(unsigned char out[][SIZE], Complex in[][SIZE]);
+
+void fourier1D(Complex out[], unsigned char in[]);
+void inverseFourier1D(unsigned char out[], Complex in[]);
+
+#endif

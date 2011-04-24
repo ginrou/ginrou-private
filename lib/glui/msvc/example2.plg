@@ -1,0 +1,33 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: example2 - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "c:\windows\TEMP\RSP43B4.TMP" with contents
+[
+/nologo /MLd /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/example2.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /c 
+"D:\projects\Glui_v2\tmp_update\glui_v2_beta\example2.cpp"
+]
+Creating command line "cl.exe @c:\windows\TEMP\RSP43B4.TMP" 
+Creating temporary file "c:\windows\TEMP\RSP43B5.TMP" with contents
+[
+glut32.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/example2.pdb" /debug /machine:I386 /out:"bin/example2.exe" /pdbtype:sept 
+.\Debug\example2.obj
+.\lib\glui32.lib
+]
+Creating command line "link.exe @c:\windows\TEMP\RSP43B5.TMP"
+<h3>Output Window</h3>
+Compiling...
+example2.cpp
+Linking...
+
+
+
+<h3>Results</h3>
+example2.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
