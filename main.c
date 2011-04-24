@@ -29,7 +29,8 @@ int main(void)
   ELEM0( fundMat, 2, 1) = -1.0;
   ELEM0( fundMat, 2, 2) = 0.01;
 
-
+  //put some comment here!
+  
   printPassedTime();
 
   IMG* disparityMap = stereoInitialDisparityMap(leftImage, rightImage, &fundMat, 24);
