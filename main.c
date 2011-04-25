@@ -12,8 +12,8 @@ int main(void)
   startClock();
 
 
-  IMG_COL* leftImage = readImageColor("img/meter-right.jpg");
-  IMG_COL* rightImage = readImageColor("img/meter-left.jpg");
+  IMG_COL* leftImage = readImageColor("img/meter-right-cut.png");
+  IMG_COL* rightImage = readImageColor("img/meter-left-cut.png");
 
   showImage( leftImage->channel[0], 500);
   showImage( rightImage->channel[0], 500);

@@ -5,21 +5,16 @@
 
 IMG* readImage( char* filename )
 {
-  printf("readImage\n");
-
+  printf("readImage : filename = %s \n", filename);
   IplImage* img = cvLoadImage( filename , CV_LOAD_IMAGE_GRAYSCALE);
   if(img == NULL)
     {
       printf("error in loading image... filename %s \n", filename);
       return NULL;
     }
-
   IMG* retImg = createImage(img->height, img->width);
-
   convertIpl2IMG(img, retImg);
-
   cvReleaseImage(&img);
-
   return retImg;
 }
 
@@ -31,39 +26,32 @@ IMG_COL* readImageColor( char* filename )
       printf("error in loading image... filename %s \n", filename);
       return NULL;
     }
-
   IMG_COL* retImg = createImageColor(img->height, img->width);
-  
   IplImage* imgSplit[3];
   for(int c = 0; c < 3; ++c)
     imgSplit[c] = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
 
   cvSplit(img, imgSplit[0], imgSplit[1], imgSplit[2], NULL);
-
   for(int c = 0; c <3; ++c)
     {
       convertIpl2IMG(imgSplit[c], retImg->channel[c]);
       cvReleaseImage(&(imgSplit[c]));
     }
   cvReleaseImage(&img);
-
   return retImg;
-
 }
 
 void convertIMG2Ipl( const IMG* src, IplImage *dst)
 {
   //size check
-  if(src == NULL || dst == NULL)
-    {
-      printf("convert image should'nt be NULL\n");
-      return;
-    }
-  if(src->height != dst->height || src->width != dst->width)
-    {
-      printf("size should be same\n");
-      return;
-    }
+  if(src == NULL || dst == NULL){
+    printf("convert image should'nt be NULL\n");
+    return;
+  }
+  if(src->height != dst->height || src->width != dst->width){
+    printf("size should be same\n");
+    return;
+  }
 
   //copying
   for(int h = 0; h < src->height; ++h)
@@ -210,6 +198,9 @@ void saveImage( IMG* img, char *filename)
   convertIMG2Ipl(img, buf);
   cvSaveImage( filename, buf, 0);
   cvReleaseImage(&buf);
+  
+  printf("%s is saved\n", filename);
+
   return;
 }
 

@@ -35,8 +35,8 @@ double stereoEval( IMG_COL *srcLeft, IMG_COL* srcRight,
 	    rightPt.x + w < 0 || rightPt.x + w >= srcRight->width){
 	  // out of allocated region
 	}else{
-	  double lv = IMG_ELEM( srcLeft->channel[c], leftPt.y + h , leftPt.x + w);
-	  double rv = IMG_ELEM( srcRight->channel[c], rightPt.y + h , rightPt.x + w);
+	  double lv = (double)IMG_ELEM( srcLeft->channel[c], leftPt.y + h , leftPt.x + w);
+	  double rv = (double)IMG_ELEM( srcRight->channel[c], rightPt.y + h , rightPt.x + w);
 	  
 	  leftSum += lv * lv;
 	  rightSum += rv * rv;
@@ -120,6 +120,14 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 	double b = ELEM0(pt2, 0, 1);
 	double c = ELEM0(pt2, 0, 2);
 
+	if( h%10 == 0 && w%10 == 0){
+	  if(x==w)printf("(h, w) = (%3d, %3d)\n", h, w);
+	  int y =(-a/b)*(double)x - c/b;
+	  printf("\t(y,x) = (%3d,%3d) -> ",y ,x);
+	  y = (-a/b)*(double)(x+1) - c/b; 
+	  printf("(%3d,%3d) \n",y ,x+1);
+	}
+
 	for( int y = (-a/b)*(double)x - c/b ; y <= (-a/b)*(double)(x+1) -c/b; ++y){
 	  //範囲チェック
 	  if( x < 0 || x >= width || y < 0 || y >= height || abs(x-w) > maxDisparity){
@@ -131,6 +139,7 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 	    if( val < min){
 	      min = val;
 	      IMG_ELEM( initDispMap, h, w) = (uchar)abs(x-w);
+
 	    }//if
 	  }//if
 	}//for y
