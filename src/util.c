@@ -3,8 +3,11 @@ util.c
 ****************************************/
 #include "util.h"
 
+//途中の画像を表示
 void showImage( const IMG *img, int keyWait)
 {
+  if( img == NULL ) return;
+  
   IplImage* dispImage = cvCreateImage( cvSize(img->width, img->height), IPL_DEPTH_8U, 1);
   convertIMG2Ipl( img, dispImage);
   

@@ -7,6 +7,6 @@
 
 void resizeImage( IMG* src, IMG* dst);
 void normalizeMat(Mat *src, Mat *dst);// compute L1 norm (sum of all elements)
-void convetScaleImage( const IMG* src,  IMG* dst, double scale, double shift);
+void convertScaleImage( const IMG* src,  IMG* dst, double scale, double shift);
 
 #endif

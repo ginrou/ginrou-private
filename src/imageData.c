@@ -20,6 +20,7 @@ IMG* readImage( char* filename )
 
 IMG_COL* readImageColor( char* filename )
 {
+  printf("readImageColor : filename = %s \n", filename);
   IplImage* img = cvLoadImage( filename , CV_LOAD_IMAGE_COLOR);
   if(img == NULL)
     {
@@ -194,6 +195,8 @@ IMG* cloneImage( const IMG* src, IMG *dst)
 
 void saveImage( IMG* img, char *filename)
 {
+  if(img==NULL || filename == NULL ) return;
+
   IplImage *buf = cvCreateImage( cvSize( img->width, img->height), IPL_DEPTH_8U, 1);
   convertIMG2Ipl(img, buf);
   cvSaveImage( filename, buf, 0);
@@ -206,6 +209,9 @@ void saveImage( IMG* img, char *filename)
 
 void saveImageColor( IMG_COL *img, char *filename)
 {
+
+  if(img==NULL || filename == NULL ) return;
+
   CvSize sz = cvSize( img->width, img->height);
   IplImage* buf = cvCreateImage( sz, IPL_DEPTH_8U, 3);
   IplImage* tmp[3];

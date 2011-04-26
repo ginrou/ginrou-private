@@ -35,7 +35,9 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 			     IMG_COL* srcRight,
 			     Mat* FundMat,
 			     IMG* prevDispMap,
-			     int maxDisparity);
+			     int maxDisparity,
+			     int nextHeight,
+			     int nextWidth);
 
 
 // argmin not argmax

@@ -35,13 +35,13 @@ int main(void)
 
   printPassedTime();
 
-  IMG* disparityMap = stereoInitialDisparityMap(leftImage, rightImage, &fundMat, 24);
+  IMG* disparityMap = stereoInitialDisparityMap( leftImage, rightImage, &fundMat, 32);
   
   saveImage(disparityMap, "img/dispmap.png");
 
   printPassedTime();
 
-  showImage( disparityMap, 0);
+  //  showImage( disparityMap, 0);
   
 
   return 0;

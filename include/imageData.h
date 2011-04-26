@@ -8,21 +8,22 @@
 #include <cv.h>
 #include <highgui.h>
 
-typedef struct IMG{
+typedef struct _IMG{
   int width;
   int height;
   unsigned char *data;
 }IMG;
 
-typedef struct IMG_COL{
+typedef struct _IMG_COL{
   int width;
   int height;
   IMG* channel[3];//img[0] = b, img[1] = g, img[2] = r
 }IMG_COL;
 
 
-//macro of access to data of image data
-#define IMG_ELEM( img, h, w)  ( img->data[ h * (img->width) + w] )
+//macro access to data of image data
+#define IMG_ELEM(img, h, w) ((img)->data[ (h)*( (img)->width ) + (w)  ] )
+
 
 //converting image from Ipl <--> IMG
 void convertIMG2Ipl( const IMG* src, IplImage *dst);

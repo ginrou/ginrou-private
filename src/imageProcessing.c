@@ -59,7 +59,7 @@ void normalizeMat(Mat *src, Mat *dst)
 
 }
 
-void convetScaleImage( const IMG* src,  IMG* dst, double scale, double shift)
+void convertScaleImage( const IMG* src,  IMG* dst, double scale, double shift)
 {
   for(int h=0 ; h < dst->height; ++h)
     {

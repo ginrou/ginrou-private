@@ -43,10 +43,15 @@ ${OBJS}
 ${OBJ_DIR}/${MAINFILE:.c=.o}:${MAINFILE}
 	${CC} $< ${CFLAGS} -c -o $@ ${DEBUG} ${CVFLAGS}	
 
+##OpenCVを使って確認する時(checvCV.c)
+checker.out:cvCheck.c
+	${CC} $< ${CFLAGS} -o $@ ${DEBUG} ${CVFLAGS} ${CVLIBS} ${CLIBFLAGS}
+
+
+
 #サフィックスルール
 ${OBJ_DIR}/%.o:${SRC_DIR}/%.c
 	${CC} $<  ${CFLAGS} -c -o $@  ${DEBUG} ${CVFLAGS}
-
 
 
 clean:
