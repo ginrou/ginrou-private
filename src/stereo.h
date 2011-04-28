@@ -9,8 +9,6 @@
 #include <imageProcessing.h>
 #include <util.h>
 
-#include <cv.h>
-#include <highgui.h>
 
 #define MATCHING_BLOCK_SIZE   20 //(2 * maxDisparity)
 

@@ -4,6 +4,7 @@
 #include "util.h"
 #include "imageProcessing.h"
 #include "stereo.h"
+#include "deblur.h"
 
 int main(void)
 {
@@ -11,41 +12,19 @@ int main(void)
   printf("start computing time\n");
   startClock();
 
+  IMG* img = readImage( "img/LENNA.bmp" );
+  IMG* psf = readImage( "img/Zhou0002.png" );
+  IMG* psfMin = createImage(16, 16);
+  resizeImage(psf, psfMin);
 
-  IMG_COL* leftImage = readImageColor("img/meter-right-cut.png");
-  IMG_COL* rightImage = readImageColor("img/meter-left-cut.png");
+  IMG* blurred = blur( img, psfMin);
 
-  showImage( leftImage->channel[0], 500);
-  showImage( rightImage->channel[0], 500);
+  saveImage( blurred, "img/blurred.png" );
 
-  Mat fundMat = matrixAlloc(3, 3);
-  ELEM0( fundMat, 0, 0) = 0.0;
-  ELEM0( fundMat, 0, 1) = 0.0;
-  ELEM0( fundMat, 0, 2) = 0.0;
-  ELEM0( fundMat, 1, 0) = 0.0;
-  ELEM0( fundMat, 1, 1) = 0.0;
-  ELEM0( fundMat, 1, 2) =  1.0;
-  ELEM0( fundMat, 2, 0) = 0.0;
-  ELEM0( fundMat, 2, 1) = -1.0;
-  ELEM0( fundMat, 2, 2) = 0.01;
+  resizeImage(psf, psfMin);
+  IMG* deblurred = deblur(blurred, psfMin);
 
-  //put some comment here!
-  //It has changed!!
-  //From Mac Book Pro!!!
-  //Can I fixed it?
-
-
-
-  printPassedTime();
-
-  IMG* disparityMap = stereoInitialDisparityMap( leftImage, rightImage, &fundMat, 32);
-  
-  saveImage(disparityMap, "img/dispmap.png");
-
-  printPassedTime();
-
-  //  showImage( disparityMap, 0);
-  
+  saveImage( deblurred, "img/deblurred.png" );
 
   return 0;
 

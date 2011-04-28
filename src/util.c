@@ -38,5 +38,13 @@ double getPassedTime(void)
 
 void printPassedTime(void)
 {
-  printf("passed time = %lf\n", getPassedTime());
+  double t = getPassedTime();
+
+  int h = (int)t / 3600;
+  t -= (double)h*3600.0;
+
+  int m = (int)t/60;
+  t -= (double)m * 60.0;
+
+  printf("passed time = %d : %d : %lf \n", h, m, t);
 }

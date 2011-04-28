@@ -8,7 +8,7 @@ LIB_DIR = lib
 
 MAINFILE = main.c
 TARGET = ${MAINFILE:.c=.out}
-SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c
+SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c
 OBJS := ${SRCS:.c=.o}
 OBJS := ${addprefix ${OBJ_DIR}/, ${OBJS}}
 

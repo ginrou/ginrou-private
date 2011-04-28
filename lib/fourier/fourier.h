@@ -6,7 +6,7 @@
 #include <complex.h>
 
 void fourier(Complex out[][SIZE],  unsigned char in[][SIZE] );
-void fourierInverse( unsigned char out[][SIZE], Complex in[][SIZE]);
+void inverseFourier( unsigned char out[][SIZE], Complex in[][SIZE]);
 void fourierSpectrumImage(unsigned char out[][SIZE], Complex in[][SIZE]);
 
 void fourier1D(Complex out[], unsigned char in[]);
