@@ -8,15 +8,15 @@ LIB_DIR = lib
 
 MAINFILE = main.c
 TARGET = ${MAINFILE:.c=.out}
-SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c
+SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c
 OBJS := ${SRCS:.c=.o}
 OBJS := ${addprefix ${OBJ_DIR}/, ${OBJS}}
 
 
 #日浦先生にもらったソースのライブラリ
-HIURA_LIB_FLAG =  -Llib -Ilib
-HIURA_LIB = complex.o fourier.o matrix.o ppm.o
-HIURA_LIB := ${addprefix ${LIB_DIR}/, ${HIURA_LIB}}
+#HIURA_LIB_FLAG =  -Llib -Ilib
+#HIURA_LIB = complex.o fourier.o matrix.o ppm.o
+#HIURA_LIB := ${addprefix ${LIB_DIR}/, ${HIURA_LIB}}
 
 
 #OpenCVを追加する時
@@ -30,7 +30,7 @@ CC = gcc
 CFLAGS =-std=c99 -m64 \
 	-I${INCLUDE_DIR} ${HIURA_LIB_FLAG}
 DEBUG = -g -O0
-CLIBFLAGS = -lm  -lHiura -lstdc++ #リンクするもの
+CLIBFLAGS = -lm  -lstdc++ #リンクするもの
 
 ##生成規則
 

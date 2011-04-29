@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "hiuraLib.h"
+
 #include "imageData.h"
 #include "util.h"
 #include "imageProcessing.h"
@@ -21,7 +21,6 @@ int main(void)
 
   saveImage( blurred, "img/blurred.png" );
 
-  resizeImage(psf, psfMin);
   IMG* deblurred = deblur(blurred, psfMin);
 
   saveImage( deblurred, "img/deblurred.png" );

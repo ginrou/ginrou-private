@@ -5,16 +5,16 @@
 #include <deblur.h>
 
 //ローカル関数
-void normalize( Complex arr[SIZE][SIZE] );
-double L1norm( Complex arr[SIZE][SIZE] );
+void normalize( Complex arr[FFT_SIZE][FFT_SIZE] );
+double L1norm( Complex arr[FFT_SIZE][FFT_SIZE] );
 
-void wienerdeconvolution( Complex src[SIZE][SIZE],
-			  Complex filter[SIZE][SIZE],
-			  Complex dst[SIZE][SIZE], 
+void wienerdeconvolution( Complex src[FFT_SIZE][FFT_SIZE],
+			  Complex filter[FFT_SIZE][FFT_SIZE],
+			  Complex dst[FFT_SIZE][FFT_SIZE], 
 			  double snr)
 {
-  for( int y = 0; y < SIZE; ++y){
-    for( int x = 0 ; x < SIZE; ++x){
+  for( int y = 0; y < FFT_SIZE; ++y){
+    for( int x = 0 ; x < FFT_SIZE; ++x){
       double a, b, c, d;
       a = (src[y][x]).Re;
       b = (src[y][x]).Im;
@@ -30,17 +30,17 @@ void wienerdeconvolution( Complex src[SIZE][SIZE],
 
 IMG* deblur(const IMG *img,const IMG* psf)
 {
-  unsigned char imgIn[SIZE][SIZE] = { 0 };
-  unsigned char psfIn[SIZE][SIZE] = { 0 };
-  unsigned char dstIn[SIZE][SIZE];
+  double imgIn[FFT_SIZE][FFT_SIZE] = { 0 };
+  double psfIn[FFT_SIZE][FFT_SIZE] = { 0 };
+  double dstIn[FFT_SIZE][FFT_SIZE];
 
-  Complex imgFreq[SIZE][SIZE];
-  Complex psfFreq[SIZE][SIZE];
-  Complex dstFreq[SIZE][SIZE];
+  Complex imgFreq[FFT_SIZE][FFT_SIZE];
+  Complex psfFreq[FFT_SIZE][FFT_SIZE];
+  Complex dstFreq[FFT_SIZE][FFT_SIZE];
 
   //copy img->imgIn;
-  for( int h = 0 ; h < SIZE; ++h){
-    for(int w = 0 ; w < SIZE; ++w){
+  for( int h = 0 ; h < FFT_SIZE; ++h){
+    for(int w = 0 ; w < FFT_SIZE; ++w){
       imgIn[h][w] = IMG_ELEM( img, h, w);
     }
   }
@@ -55,23 +55,16 @@ IMG* deblur(const IMG *img,const IMG* psf)
   }
 
 
-
   //fourier transform
   fourier(imgFreq, imgIn);
   fourier(psfFreq, psfIn);
-
-  printf("img norm = %lf\n", L1norm(imgFreq));
-  printf("psf norm = %lf\n", L1norm(psfFreq));
 
 
   printf("fourier transform done\n");
   printPassedTime();
 
-  //normalize psfFreq
-  //normalize(psfFreq);
-
   //wiener deconvolution
-  wienerdeconvolution( imgFreq, psfFreq, dstFreq, 0.0001);
+  wienerdeconvolution( imgFreq, psfFreq, dstFreq, 0.001);
 
   // invers fourier transform
   inverseFourier( dstIn, dstFreq);
@@ -80,10 +73,14 @@ IMG* deblur(const IMG *img,const IMG* psf)
   printPassedTime();
 
   //copy to IMG structure
-  IMG* dst = createImage(SIZE, SIZE);
-  for(int h = 0; h < SIZE; ++h){
-    for( int w = 0 ; w < SIZE; ++w){
-      IMG_ELEM(dst, h, w) = dstIn[h][w];
+  IMG* dst = createImage(FFT_SIZE, FFT_SIZE);
+  for(int h = 0; h < FFT_SIZE; ++h){
+    for( int w = 0 ; w < FFT_SIZE; ++w){
+      IMG_ELEM(dst, h, w) = fabs(dstIn[h][w]) / 3.0;
+
+      if( h%10 == 0 && w%10 ==0)
+	printf("dst[%03d][%03d] = %lf\n", h, w, dstIn[h][w]);
+
     }
   }
 
@@ -94,7 +91,7 @@ IMG* deblur(const IMG *img,const IMG* psf)
 
 IMG* blur(IMG *img, IMG* psf)
 {
-  Complex psfIn[SIZE][SIZE] = { 0.0 };
+  Complex psfIn[FFT_SIZE][FFT_SIZE] = { 0.0 };
   IMG* dst = createImage( img->height, img->width);
 
   for(int h = 0; h < psf->height; ++h){
@@ -131,13 +128,13 @@ IMG* blur(IMG *img, IMG* psf)
 
 // L1ノルムが1となるように調整
 // 複素数なので norm = sum( |z| )　で調整
-void normalize( Complex arr[SIZE][SIZE] )
+void normalize( Complex arr[FFT_SIZE][FFT_SIZE] )
 {
   double norm = 0.0;
 
   //compute norm
-  for( int h = 0; h < SIZE; ++h){
-    for(int w = 0; w < SIZE; ++w){
+  for( int h = 0; h < FFT_SIZE; ++h){
+    for(int w = 0; w < FFT_SIZE; ++w){
       double re = arr[h][w].Re;
       double im = arr[h][w].Im;
       norm += sqrt( re*re + im*im );
@@ -147,8 +144,8 @@ void normalize( Complex arr[SIZE][SIZE] )
   printf("norm = %lf\n", norm);
 
   // normalize 
-  for( int h = 0 ; h < SIZE; ++h){
-    for( int w = 0; w < SIZE; ++w){
+  for( int h = 0 ; h < FFT_SIZE; ++h){
+    for( int w = 0; w < FFT_SIZE; ++w){
       arr[h][w].Re /= norm;
       arr[h][w].Im /= norm;
     }
@@ -158,15 +155,73 @@ void normalize( Complex arr[SIZE][SIZE] )
 
 }
 
-double L1norm( Complex arr[SIZE][SIZE] )
+double L1norm( Complex arr[FFT_SIZE][FFT_SIZE] )
 {
   double norm = 0.0;
-  for(int h = 0; h < SIZE; ++h){
-    for(int w = 0 ; w < SIZE; ++w){
+  for(int h = 0; h < FFT_SIZE; ++h){
+    for(int w = 0 ; w < FFT_SIZE; ++w){
       double re = (arr[h][w]).Re;
       double im = (arr[h][w]).Im;
       norm += sqrt( re*re + im*im );
     }
   }
   return norm;
+}
+
+
+IMG* blurFilter( IMG *img, IMG *psf)
+{
+  double imgIn[FFT_SIZE][FFT_SIZE] = {0.0};
+  double psfIn[FFT_SIZE][FFT_SIZE] = {0.0};
+  double dstIn[FFT_SIZE][FFT_SIZE];
+
+  Complex imgFreq[FFT_SIZE][FFT_SIZE];
+  Complex psfFreq[FFT_SIZE][FFT_SIZE];
+  Complex dstFreq[FFT_SIZE][FFT_SIZE];
+
+  //copy
+  for(int h = 0 ; h < FFT_SIZE; ++h){
+    for( int w = 0 ; w < FFT_SIZE; ++w){
+      imgIn[h][w] = (double)IMG_ELEM(img , h, w);
+    }
+  }
+
+  //copy psf
+  for( int h = 0 ; h < psf->height; ++h){
+    for( int w = 0; w < psf->width; ++w){
+      int y = psf->height - h;
+      int x = psf->width - w;
+      psfIn[h][w] = (double)IMG_ELEM(psf, y, x);
+    }
+  }
+
+  fourier( imgFreq, imgIn);
+  fourier( psfFreq, psfIn);
+
+  for(int h = 0; h < FFT_SIZE; ++h){
+    for( int w = 0 ; w < FFT_SIZE; ++w){
+      double a = imgFreq[h][w].Re;
+      double b = imgFreq[h][w].Im;
+      double c = psfFreq[h][w].Re;
+      double d = psfFreq[h][w].Im;
+
+      dstFreq[h][w].Re = a*c - b*d;
+      dstFreq[h][w].Im = b*c + d*a;
+
+    }
+  }
+  
+  inverseFourier( dstIn, dstFreq);
+
+
+  IMG* dst = createImage( FFT_SIZE, FFT_SIZE);
+  for(int h = 0 ; h < FFT_SIZE; ++h){
+    for( int w = 0; w < FFT_SIZE; ++w){
+      IMG_ELEM(dst, h, w) = dstIn[h][w];
+    }
+  }
+
+  return dst;
+  
+
 }

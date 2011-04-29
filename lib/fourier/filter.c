@@ -7,8 +7,8 @@
 #include <fourier.h>
 #include <ppm.h>
 
-unsigned char image[SIZE][SIZE];
-Complex fimage[SIZE][SIZE];
+unsigned char image[FFT_SIZE][FFT_SIZE];
+Complex fimage[FFT_SIZE][FFT_SIZE];
 
 #define RAD 20
 
@@ -29,18 +29,18 @@ main (int argc, char *argv[]) {
   data = readPGM(argv[1], &width, &height);
   printf("size = %d %d\n", width, height);
 
-  fourier(fimage, (unsigned char (*)[SIZE])data);
+  fourier(fimage, (unsigned char (*)[FFT_SIZE])data);
 
   fourierSpectrumImage(image, fimage);
 
   strcpy(fname, argv[1]);
   strcat(fname, ".fft.pbm");
-  writePGM(fname, (unsigned char *)image, SIZE, SIZE);
+  writePGM(fname, (unsigned char *)image, FFT_SIZE, FFT_SIZE);
 
 #if 1
-  for( x = 0; x < SIZE; x++) {
-    for( y = 0; y < SIZE; y++) {
-      if((x > RAD && x < SIZE - RAD) || (y > RAD && y < SIZE - RAD)) {
+  for( x = 0; x < FFT_SIZE; x++) {
+    for( y = 0; y < FFT_SIZE; y++) {
+      if((x > RAD && x < FFT_SIZE - RAD) || (y > RAD && y < FFT_SIZE - RAD)) {
 	fimage[x][y].Re = fimage[x][y].Im = 0;
       }
     }
@@ -50,7 +50,7 @@ main (int argc, char *argv[]) {
 
   strcpy(fname, argv[1]);
   strcat(fname, ".filt.pbm");
-  writePGM(fname, (unsigned char *)image, SIZE, SIZE);
+  writePGM(fname, (unsigned char *)image, FFT_SIZE, FFT_SIZE);
 
   free(data);
 }

@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <float.h>
 
-#include <hiuraLib.h>
+#include <matrix.h>
+
 #include <imageData.h>
 #include <imageProcessing.h>
 #include <util.h>

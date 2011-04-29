@@ -1,7 +1,7 @@
 #ifndef __IMAGE_PROCESSING__
 #define __IMAGE_PROCESSING__
 
-#include "hiuraLib.h"
+#include <matrix.h>
 #include "imageData.h"
 #include "util.h"
 

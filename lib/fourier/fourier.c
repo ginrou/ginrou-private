@@ -114,63 +114,63 @@ static int fft( int n, double re[], double im[] )
 /* 2D Fast Fourier Transform for PPM : Processing part */
 
 
-void fourier(Complex out[][SIZE], unsigned char in[][SIZE] ) {
+void fourier(Complex out[][FFT_SIZE], unsigned char in[][FFT_SIZE] ) {
   int x, y;
-  double re[SIZE], im[SIZE];
+  double re[FFT_SIZE], im[FFT_SIZE];
 
   /* FFT */
   fprintf( stderr, "Fourier transforming...\n" );
 
-  for( x = 0; x < SIZE; x++ ){
-    for( y = 0; y < SIZE; y++ ){
+  for( x = 0; x < FFT_SIZE; x++ ){
+    for( y = 0; y < FFT_SIZE; y++ ){
       re[y] = ( double )in[x][y];
       im[y] = 0;
     }
-    if( fft( SIZE, re, im ) ) exit(0);
-    for( y = 0; y < SIZE; y++ ){
+    if( fft( FFT_SIZE, re, im ) ) exit(0);
+    for( y = 0; y < FFT_SIZE; y++ ){
       out[x][y].Re = re[y];
       out[x][y].Im = im[y];
     }
   }
-  for( y = 0; y < SIZE; y++ ){
-    for( x = 0; x < SIZE; x++ ){
+  for( y = 0; y < FFT_SIZE; y++ ){
+    for( x = 0; x < FFT_SIZE; x++ ){
       re[x] = out[x][y].Re;
       im[x] = out[x][y].Im;
     }
-    if( fft( SIZE, re, im ) ) exit(0);
-    for( x = 0; x < SIZE; x++ ){
+    if( fft( FFT_SIZE, re, im ) ) exit(0);
+    for( x = 0; x < FFT_SIZE; x++ ){
       out[x][y].Re = re[x];
       out[x][y].Im = im[x];
     }
   }
 }
 
-void inverseFourier(unsigned char out[][SIZE], Complex in[][SIZE] ){
+void inverseFourier(unsigned char out[][FFT_SIZE], Complex in[][FFT_SIZE] ){
   int x, y;
-  double re[SIZE], im[SIZE];
-  double Real[SIZE][SIZE], Imag[SIZE][SIZE];
+  double re[FFT_SIZE], im[FFT_SIZE];
+  double Real[FFT_SIZE][FFT_SIZE], Imag[FFT_SIZE][FFT_SIZE];
 
   /* IFFT */
   fprintf( stderr, "Inverse fourier transforming...\n" );
 
-  for( y = 0; y < SIZE; y++ ){
-    for( x = 0; x < SIZE; x++ ){
+  for( y = 0; y < FFT_SIZE; y++ ){
+    for( x = 0; x < FFT_SIZE; x++ ){
       re[x] = in[x][y].Re;
       im[x] = in[x][y].Im;
     }
-    if( fft( -SIZE, re, im ) ) exit(0);
-    for( x = 0; x < SIZE; x++ ){
+    if( fft( -FFT_SIZE, re, im ) ) exit(0);
+    for( x = 0; x < FFT_SIZE; x++ ){
       Real[x][y] = re[x];
       Imag[x][y] = im[x];
     }
   }
-  for( x = 0; x < SIZE; x++ ){
-    for( y = 0; y < SIZE; y++ ){
+  for( x = 0; x < FFT_SIZE; x++ ){
+    for( y = 0; y < FFT_SIZE; y++ ){
       re[y] = Real[x][y];
       im[y] = Imag[x][y];
     }
-    if( fft( -SIZE, re, im ) ) exit(0);
-    for( y = 0; y < SIZE; y++ ){
+    if( fft( -FFT_SIZE, re, im ) ) exit(0);
+    for( y = 0; y < FFT_SIZE; y++ ){
       int i = (int)re[y];
 
       if( i > 255) {
@@ -188,18 +188,18 @@ void inverseFourier(unsigned char out[][SIZE], Complex in[][SIZE] ){
   }
 }
 
-void fourierSpectrumImage(unsigned char out[][SIZE], Complex in[][SIZE])
+void fourierSpectrumImage(unsigned char out[][FFT_SIZE], Complex in[][FFT_SIZE])
 {
   int x, y, i;
   int max_exp = -100, exp;
   double fra;
-  int spectrum[SIZE][SIZE];
+  int spectrum[FFT_SIZE][FFT_SIZE];
 
   /* Power Spectrum */
   fprintf( stderr, "Calculating power spectrum...\n" );
 
-  for( y = 0; y < SIZE; y++ ) {
-    for( x = 0; x < SIZE; x++ ) {
+  for( y = 0; y < FFT_SIZE; y++ ) {
+    for( x = 0; x < FFT_SIZE; x++ ) {
       exp = log10(compAbs(in[x][y])) * 100.0;
       spectrum[x][y] = exp;
       if(max_exp < exp) {
@@ -210,12 +210,12 @@ void fourierSpectrumImage(unsigned char out[][SIZE], Complex in[][SIZE])
 
   fprintf(stderr, "max_exp = %d\n", max_exp);
 
-  for( y = 0; y < SIZE; y++ ) {
-    for( x = 0; x < SIZE; x++ ) {
+  for( y = 0; y < FFT_SIZE; y++ ) {
+    for( x = 0; x < FFT_SIZE; x++ ) {
       int rx, ry;
 
-      rx = (x + SIZE / 2) % SIZE;
-      ry = (y + SIZE / 2) % SIZE;
+      rx = (x + FFT_SIZE / 2) % FFT_SIZE;
+      ry = (y + FFT_SIZE / 2) % FFT_SIZE;
 #if 1
       i = spectrum[rx][ry] - max_exp + 255;
 #else
@@ -236,14 +236,14 @@ void fourierSpectrumImage(unsigned char out[][SIZE], Complex in[][SIZE])
 
 void fourier1D(Complex out[], unsigned char in[]) {
   int x;
-  double re[SIZE], im[SIZE];
+  double re[FFT_SIZE], im[FFT_SIZE];
 
-  for( x = 0; x < SIZE; x++ ){
+  for( x = 0; x < FFT_SIZE; x++ ){
     re[x] = ( double )in[x];
     im[x] = 0;
   }
-  if( fft( SIZE, re, im ) ) exit(0);
-  for( x = 0; x < SIZE; x++ ){
+  if( fft( FFT_SIZE, re, im ) ) exit(0);
+  for( x = 0; x < FFT_SIZE; x++ ){
     out[x].Re = re[x];
     out[x].Im = im[x];
   }
@@ -251,15 +251,15 @@ void fourier1D(Complex out[], unsigned char in[]) {
 
 void inverseFourier1D(unsigned char out[], Complex in[] ){
   int x, y;
-  double re[SIZE], im[SIZE];
+  double re[FFT_SIZE], im[FFT_SIZE];
 
   /* IFFT */
-  for( x = 0; x < SIZE; x++ ){
+  for( x = 0; x < FFT_SIZE; x++ ){
     re[x] = in[x].Re;
     im[x] = in[x].Im;
   }
-  if( fft( -SIZE, re, im ) ) exit(0);
-  for( x = 0; x < SIZE; x++ ){
+  if( fft( -FFT_SIZE, re, im ) ) exit(0);
+  for( x = 0; x < FFT_SIZE; x++ ){
     int i = (int)re[x];
 
     if( i > 255) {
