@@ -4,7 +4,7 @@ imageProcessing.c
 
 #include "imageProcessing.h"
 
-void resizeImage( IMG* src, IMG* dst)
+void resizeImage(const  IMG* src, IMG* dst)
 {
 
 

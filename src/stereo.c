@@ -68,7 +68,61 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
 		      Mat* FundMat, 
 		      int maxDisparity, int minDisparity)
 {
-  
+
+  printf("stereo recursive :  max disparity = %d, min disparity = %d\n", maxDisparity, minDisparity);
+
+  if( maxDisparity <= minDisparity){//これ以上小さい視差へは投げない
+    if( maxDisparity == 1)
+      {
+	IMG* dst = createImage( srcLeft->height, srcLeft->height);
+	convertScaleImage(dst, dst, 0.0, 0.0);
+	return dst;
+      }
+    else
+      {
+	return stereoInitialDisparityMap( srcLeft, srcRight, FundMat, maxDisparity);
+      }
+
+  }else{//小さい視差へ投げる
+    IMG_COL *minLeft = createImageColor( srcLeft->height/2, srcLeft->width/2 );
+    IMG_COL *minRight = createImageColor( srcRight->height/2, srcRight->width/2 );
+    
+    //resize
+    for(int c = 0; c < 3; ++c){
+      resizeImage( srcLeft->channel[c], minLeft->channel[c]);
+      resizeImage( srcRight->channel[c], minRight->channel[c]);
+    }
+
+    //epipoler
+    Mat minFund = matrixAllocDup( *FundMat);
+    ELEM0( minFund, 0, 0) *= 4.0;
+    ELEM0( minFund, 0, 1) *= 4.0;
+    ELEM0( minFund, 0, 2) *= 2.0;
+    ELEM0( minFund, 1, 0) *= 4.0;
+    ELEM0( minFund, 1, 1) *= 4.0;
+    ELEM0( minFund, 1, 2) *= 2.0;
+    ELEM0( minFund, 2, 0) *= 2.0;
+    ELEM0( minFund, 2, 1) *= 2.0;
+    ELEM0( minFund, 2, 2) *= 1.0;
+
+    //小さい視差での結果を得る
+    IMG* dispMin = stereoRecursive( minLeft, minRight, &minFund, 
+				    maxDisparity/2, minDisparity);
+
+    //小さい視差での結果を受けて次のサイズの物を計算
+    IMG* dst = stereoNextDisparityMap( srcLeft, srcRight, FundMat,
+				       dispMin, maxDisparity,
+				       srcLeft->height, srcLeft->width);
+
+    //お掃除
+    releaseImageColor(&minLeft);
+    releaseImageColor(&minRight);
+    matrixFree(minFund);
+    releaseImage(&dispMin);
+
+    return dst;
+
+  }
 
 
   return NULL;
@@ -123,13 +177,6 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 	double b = ELEM0(pt2, 0, 1);
 	double c = ELEM0(pt2, 0, 2);
 
-	if( h%10 == 0 && w%10 == 0){
-	  if(x==w)printf("(h, w) = (%3d, %3d)\n", h, w);
-	  int y =(-a/b)*(double)x - c/b;
-	  printf("\t(y,x) = (%3d,%3d) -> ",y ,x);
-	  y = (-a/b)*(double)(x+1) - c/b; 
-	  printf("(%3d,%3d) \n",y ,x+1);
-	}
 
 	for( int y = (-a/b)*(double)x - c/b ; y <= (-a/b)*(double)(x+1) -c/b; ++y){
 	  //範囲チェック
@@ -148,16 +195,13 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 	}//for y
       }//for x
 
-      if( w % 10 == 0 ){
-	printf("%d, %d ->count = %d   ", h, w, count);
-	printf("disparity = %d\n", (int)IMG_ELEM(initDispMap, h, w));
-      }
-
     }//for w
   }//for h
 
   matrixFree(pt1);
   matrixFree(pt2);
+
+  saveImage( initDispMap, "img/initialMap.png");
 
   return initDispMap;
 
@@ -180,6 +224,10 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       printf("srcRight-> %d * %d\n return NULL \n", srcRight->width , srcRight->height);
       return NULL;
     }
+
+  printf("stereo next disparity map : previous size = %d, %d next size = %d, %d\n",
+	 prevDispMap->height, prevDispMap->width, nextHeight, nextWidth);
+
 
   //視差マップ( prevDispmap )をコンバート
   IMG* dispMap = createImage( nextHeight, nextWidth );
@@ -216,6 +264,9 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       a = ELEM0(pt2, 0, 0);
       b = ELEM0(pt2, 0, 1);
       c = ELEM0(pt2, 0, 2);
+
+      if( h%10 == 0 && w%10 == 0)
+	printf("y = %lf x + %lf  ",-a/b, -c/b);
 
       prevDisparity = (int)IMG_ELEM( dispMap, h, w);
 
@@ -256,8 +307,11 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 	}//x
       }//y
 
-    }//x
-  }//y
+      if( h%10 == 0 && w%10 == 0)
+	printf("%3d, %3d -> %d\n",h, w, (int)IMG_ELEM(dst,h,w));
+
+    }//w
+  }//h
 
   matrixFree(pt1);
   matrixFree(pt2);

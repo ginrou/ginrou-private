@@ -5,25 +5,49 @@
 #include "imageProcessing.h"
 #include "stereo.h"
 #include "deblur.h"
-
+#include "blur.h"
 int main(void)
 {
 
   printf("start computing time\n");
   startClock();
 
-  IMG* img = readImage( "img/LENNA.bmp" );
-  IMG* psf = readImage( "img/Zhou0002.png" );
-  IMG* psfMin = createImage(16, 16);
-  resizeImage(psf, psfMin);
+  //load
+  IMG_COL* left = readImageColor("img/DSC_0094.JPG");
+  IMG_COL* right = readImageColor("img/DSC_0095.JPG");
+  IMG* psf = readImage("img/zhou005-110222.png");
 
-  IMG* blurred = blur( img, psfMin);
+  double param[2] = {1.1803, 4.4626};
 
-  saveImage( blurred, "img/blurred.png" );
+  Mat epiMat = matrixAlloc(3, 3);
+  ELEM0(epiMat, 0, 0) = 0.0;
+  ELEM0(epiMat, 0, 1) = 0.0;
+  ELEM0(epiMat, 0, 2) = 0.0;
+  ELEM0(epiMat, 1, 0) = 0.0;
+  ELEM0(epiMat, 1, 1) = 0.0;
+  ELEM0(epiMat, 1, 2) = 1.0;
+  ELEM0(epiMat, 2, 0) = 0.0;
+  ELEM0(epiMat, 2, 1) = -1.0;
+  ELEM0(epiMat, 2, 2) = -1.0;
 
-  IMG* deblurred = deblur(blurred, psfMin);
+  //stereo
+  IMG* disparityMap = stereoRecursive(left, right, &epiMat, 32, 2);
 
-  saveImage( deblurred, "img/deblurred.png" );
+  printf("stereo correspondence done\n");
+
+  saveImage(disparityMap, "img/disparityMap.png");
+
+  return 0;
+
+  IMG* deblurredImage = deblur( left->channel[0], 
+				psf,
+				disparityMap,
+				param);
+
+  saveImage( deblurredImage, "img/deblurredImage.png");
+
+  printPassedTime();
+  
 
   return 0;
 

@@ -5,7 +5,7 @@
 #include "imageData.h"
 #include "util.h"
 
-void resizeImage( IMG* src, IMG* dst);
+void resizeImage(const  IMG* src, IMG* dst);
 void normalizeMat(Mat *src, Mat *dst);// compute L1 norm (sum of all elements)
 void convertScaleImage( const IMG* src,  IMG* dst, double scale, double shift);
 
