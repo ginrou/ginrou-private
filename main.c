@@ -6,6 +6,12 @@
 #include "stereo.h"
 #include "deblur.h"
 #include "blur.h"
+
+#define YES 1
+#define NO 0
+
+#define LOAD_DISPARITY_MAP NO
+
 int main(void)
 {
 
@@ -13,8 +19,8 @@ int main(void)
   startClock();
 
   //load
-  IMG_COL* left = readImageColor("img/DSC_0094.JPG");
-  IMG_COL* right = readImageColor("img/DSC_0095.JPG");
+  IMG_COL* left = readImageColor("img/DSC_0095.JPG");
+  IMG_COL* right = readImageColor("img/DSC_0094.JPG");
   IMG* psf = readImage("img/zhou005-110222.png");
 
   double param[2] = {1.1803, 4.4626};
@@ -31,13 +37,19 @@ int main(void)
   ELEM0(epiMat, 2, 2) = -1.0;
 
   //stereo
-  IMG* disparityMap = stereoRecursive(left, right, &epiMat, 32, 2);
+  IMG* disparityMap;
+  if( LOAD_DISPARITY_MAP == YES){
+    disparityMap = readImage("img/disparityMap.png");
+  }else{
+    disparityMap = stereoRecursive(left, right, &epiMat, 32, 2);
+    saveImage(disparityMap, "img/disparityMap.png");
+  }
 
   printf("stereo correspondence done\n");
 
-  saveImage(disparityMap, "img/disparityMap.png");
 
-  return 0;
+
+
 
   IMG* deblurredImage = deblur( left->channel[0], 
 				psf,

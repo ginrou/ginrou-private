@@ -108,6 +108,11 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
     //小さい視差での結果を得る
     IMG* dispMin = stereoRecursive( minLeft, minRight, &minFund, 
 				    maxDisparity/2, minDisparity);
+    
+    char filename[256];
+    sprintf(filename,"img/dispMap%03d-%3d.png",dispMin->height, dispMin->width);
+    saveImage( dispMin, filename);
+
 
     //小さい視差での結果を受けて次のサイズの物を計算
     IMG* dst = stereoNextDisparityMap( srcLeft, srcRight, FundMat,
@@ -236,6 +241,7 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 
   //結果格納用
   IMG* dst = createImage( nextHeight, nextWidth);
+  convertScaleImage(dst, dst, 0.0, 0.0);
 
   //その他の変数
   //エピポーラまわり
@@ -265,8 +271,6 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       b = ELEM0(pt2, 0, 1);
       c = ELEM0(pt2, 0, 2);
 
-      if( h%10 == 0 && w%10 == 0)
-	printf("y = %lf x + %lf  ",-a/b, -c/b);
 
       prevDisparity = (int)IMG_ELEM( dispMap, h, w);
 
@@ -279,12 +283,20 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       }else{
 	searchWidth = 2;
       }
+
+      if( h%100 == 0 && w%100 == 0)
+	printf("y = %lf x + %lf prev = %d, sw = %d ",-a/b, -c/b, prevDisparity, searchWidth);
+
 	
       //探索
       double min = DBL_MAX;
       double val;
       for( int x = w + prevDisparity*2 - 1; x < w+prevDisparity*2 +searchWidth; ++x){
-	for( int y = (-a/b)*(double)x -c/b ; y < (-a/b)*(double)(x+1) -c/b ; ++y){
+	for( int y = (-a/b)*(double)x -c/b ; y <= (-a/b)*(double)(x+1) -c/b ; ++y){
+
+
+	  if( h%100 == 0 && w%100 == 0 && maxDisparity == 16)
+	    printf("here!\n");
 
 	  rightPt.x = x;
 	  rightPt.y = y;
@@ -307,7 +319,7 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 	}//x
       }//y
 
-      if( h%10 == 0 && w%10 == 0)
+      if( h%100 == 0 && w%100 == 0)
 	printf("%3d, %3d -> %d\n",h, w, (int)IMG_ELEM(dst,h,w));
 
     }//w
