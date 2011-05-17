@@ -48,4 +48,7 @@ void createPSF( Complex dst[PSF_SIZE][FFT_SIZE][FFT_SIZE],
 //大きさは FFT_SIZE * FFT_SIZE
 Mat createWindowFunction(void);
 
+
+IMG* deblur2( const IMG* src, const IMG* psf, int size);
+
 #endif

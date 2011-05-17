@@ -225,3 +225,65 @@ Mat createWindowFunction(void)
     }
   return ret;
 }
+
+
+
+IMG* deblur2( const IMG* src, const IMG* psf, int size)
+{
+  double imgIn[FFT_SIZE][FFT_SIZE] = { 0 };
+  double psfIn[FFT_SIZE][FFT_SIZE] = { 0 };
+  double dstIn[FFT_SIZE][FFT_SIZE];
+
+  Complex imgFreq[FFT_SIZE][FFT_SIZE];
+  Complex psfFreq[FFT_SIZE][FFT_SIZE];
+  Complex dstFreq[FFT_SIZE][FFT_SIZE];
+
+  //copy img->imgIn;
+  for( int h = 0 ; h < FFT_SIZE; ++h){
+    for(int w = 0 ; w < FFT_SIZE; ++w){
+      imgIn[h][w] = IMG_ELEM( src, h, w);
+    }
+  }
+  //copy psf -> psfIn
+  //deblur過程でpsfは反転する
+  for(int h = 0; h < psf->height; ++h){
+    for(int w = 0; w < psf->width; ++w){
+      int y = psf->height - h;
+      int x = psf->width - w;
+      psfIn[h][w] = IMG_ELEM(psf, y, x);
+    }
+  }
+
+
+  //fourier transform
+  fourier(imgFreq, imgIn);
+  fourier(psfFreq, psfIn);
+
+
+  printf("fourier transform done\n");
+  printPassedTime();
+
+  //wiener deconvolution
+  wienerdeconvolution( imgFreq, psfFreq, dstFreq, 0.0002);
+
+  // invers fourier transform
+  inverseFourier( dstIn, dstFreq);
+
+  printf("wiener deconvolution and inverse fouiere transform done\n");
+  printPassedTime();
+
+  //copy to IMG structure
+  IMG* dst = createImage(FFT_SIZE, FFT_SIZE);
+  for(int h = 0; h < FFT_SIZE; ++h){
+    for( int w = 0 ; w < FFT_SIZE; ++w){
+      IMG_ELEM(dst, h, w) = fabs(dstIn[h][w]) / 3.0;
+
+      if( h%10 == 0 && w%10 ==0)
+	printf("dst[%03d][%03d] = %lf\n", h, w, dstIn[h][w]);
+
+    }
+  }
+
+  return dst;  
+
+}

@@ -3,7 +3,7 @@
 
 
 #ifndef FFT_SIZE
-#define FFT_SIZE 64
+#define FFT_SIZE 256
 #endif
 
 #include <complex.h>
