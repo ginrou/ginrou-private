@@ -199,11 +199,13 @@ void saveImage( IMG* img, char *filename)
 
   IplImage *buf = cvCreateImage( cvSize( img->width, img->height), IPL_DEPTH_8U, 1);
   convertIMG2Ipl(img, buf);
-  cvSaveImage( filename, buf, 0);
+  if( cvSaveImage( filename, buf, 0) )
+    printf("%s is saved %d\n", filename);
+  else
+    printf("%s cannot save %d\n", filename);
+
   cvReleaseImage(&buf);
   
-  printf("%s is saved\n", filename);
-
   return;
 }
 
@@ -222,7 +224,7 @@ void saveImageColor( IMG_COL *img, char *filename)
       convertIMG2Ipl( img->channel[c], tmp[c]);
     }
   cvMerge( tmp[0], tmp[1], tmp[2], NULL, buf);
-  cvSaveImage( filename, buf, 0);
+  int result = cvSaveImage( filename, buf, 0);
 
   for(int c = 0; c < 3 ; ++c)
     cvReleaseImage( &(tmp[c]) );

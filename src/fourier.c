@@ -119,7 +119,6 @@ void fourier(Complex out[][FFT_SIZE], double in[][FFT_SIZE] ) {
   double re[FFT_SIZE], im[FFT_SIZE];
 
   /* FFT */
-  fprintf( stderr, "Fourier transforming...\n" );
 
   for( x = 0; x < FFT_SIZE; x++ ){
     for( y = 0; y < FFT_SIZE; y++ ){
@@ -151,7 +150,7 @@ void inverseFourier(double out[][FFT_SIZE], Complex in[][FFT_SIZE] ){
   double Real[FFT_SIZE][FFT_SIZE], Imag[FFT_SIZE][FFT_SIZE];
 
   /* IFFT */
-  fprintf( stderr, "Inverse fourier transforming...\n" );
+
 
   for( y = 0; y < FFT_SIZE; y++ ){
     for( x = 0; x < FFT_SIZE; x++ ){

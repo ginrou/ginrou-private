@@ -10,7 +10,7 @@
 #define YES 1
 #define NO 0
 
-#define LOAD_DISPARITY_MAP NO
+#define LOAD_DISPARITY_MAP YES
 
 int main(void)
 {
@@ -47,8 +47,20 @@ int main(void)
 
   printf("stereo correspondence done\n");
 
+  int disp;
+  param[0] = 1.0;
+  param[1] = 0.0;
+  for(disp = 1; disp < 2; ++disp){
+    convertScaleImage(disparityMap, disparityMap, 0.0, disp);
+    IMG* dbl = deblur( left->channel[0],psf,disparityMap, param);
+    char filename[256];
+    sprintf( filename, "img/test/dblDisp%02d.png",disp);
+    saveImage(dbl, filename);
+    releaseImage(&dbl);
+  }
 
 
+  return 0;
 
 
   IMG* deblurredImage = deblur( left->channel[0], 

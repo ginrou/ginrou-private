@@ -11,8 +11,6 @@ void wienerdeconvolution( Complex src[FFT_SIZE][FFT_SIZE],
 			  double snr)
 {
 
-  printf("wiener deconvolution...");
-
   for( int y = 0; y < FFT_SIZE; ++y){
     for( int x = 0 ; x < FFT_SIZE; ++x){
       double a, b, c, d;
@@ -25,7 +23,7 @@ void wienerdeconvolution( Complex src[FFT_SIZE][FFT_SIZE],
       (dst[y][x]).Im = ( b*c - a*d ) / ( c*c + d*d + snr );
     }
   }
-  printf("done\n");
+
 }
 
 
@@ -70,8 +68,6 @@ IMG* deblur(const IMG* src,
   
   for(int row = 0; row < BlockRows; ++row){
     for(int col = 0 ; col < BlockCols; ++col){
-      
-      printf("block %d, %d\n", row, col);
 
       //copy & window function
       for( h = 0; h < CUT_OFF_SIZE; ++h){
@@ -94,7 +90,7 @@ IMG* deblur(const IMG* src,
       int disparity = (int)IMG_ELEM(disparityMap, row*BLOCK_SIZE + BLOCK_SIZE/2, col*BLOCK_SIZE + BLOCK_SIZE/2);
       int kernelSize =  param[0]*(double)disparity + param[1] ;
       
-      printf("disprity = %d, kernelSize = %d\n",disparity, kernelSize);
+      //printf("disprity = %d, kernelSize = %d\n",disparity, kernelSize);
 
       //srcをDFT
       fourier(srcF, srcIn);
@@ -152,7 +148,6 @@ IMG* deblur(const IMG* src,
     }
   }
 
-  printf("min = %lf at %d,%d , max = %lf at %d, %d\n",min, pt.y, pt.x, max, PT.y, PT.x);
 
   for( h = 0 ; h < dst->height ; ++h ){
     for( w = 0 ; w < dst->width ; ++w ){
