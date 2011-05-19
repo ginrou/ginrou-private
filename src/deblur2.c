@@ -261,6 +261,15 @@ IMG* deblurFFTWInvariant( IMG* src,
   }
 
   //cleaning
+  matrixFree(dstMat);
+  matrixFree(window);
+  fftw_free(srcFFTW);
+  fftw_free(dstFFTW);
+  for(i=0;i<MAX_DISPARITY;++i)
+    if( psfFFTW[i] ) fftw_free( psfFFTW[i] );
+  fftw_destroy_plan(srcPlan);
+  fftw_destroy_plan(dstPlan);
+  
 
   return dst;
 

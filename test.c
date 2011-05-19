@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "imageData.h"
 #include "util.h"
@@ -12,20 +13,26 @@
 
 
 int main( int argc, char* argv[]){
-  IMG* src = readImage("img/blurred.png");
-  IMG* psfTmp = readImage("img/Zhou0002.png");
-  IMG* psf = createImage( 16, 16);
-  resizeImage(psfTmp, psf);
-
-  double p[2] = {0.0, 16.0};
-  IMG* disparityMap = createImage(src->height, src->width);
-  convertScaleImage( disparityMap, disparityMap, 0.0, 0.0);
 
 
-  IMG* dbl = deblurFFTWInvariant(src, psfTmp, disparityMap, p);
-  //IMG* dbl = deblurFFTW(src, psf);
+  IMG* src = readImage("img/DSC_0095.JPG");
+  IMG* psf = readImage("img/zhou005-110222.png");
+  IMG* dispMap = createImage( src->height, src->width);
+  convertScaleImage(dispMap, dispMap, 0.0, 0.0);
 
-  saveImage( dbl, "img/deblurredFFTW.png");
+  char filename[256];
+
+  int size;
+
+  for( size = 1; size < 32; ++size ){
+    printf("size = %d\n",size);
+    double param[2] = { 0.0, 0.0 };
+    param[1] = (double)size;
+    IMG* dbl = deblurFFTWInvariant(src, psf, dispMap, param);
+    sprintf(filename, "img/test/size%02d.png", size);
+    saveImage(dbl, filename);
+    releaseImage(&dbl);
+  }
 
   return 0;
 
