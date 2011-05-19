@@ -14,10 +14,22 @@
 
 int main(void)
 {
-
+  /*
   printf("start computing time\n");
   startClock();
 
+  IMG* src = readImage("img/LENNA.bmp");
+  IMG* hoge = readImage("img/Zhou0002.png");
+  IMG* piyo = createImage( 16, 16);
+  resizeImage( hoge, piyo);
+  IMG* blu = blur(src, piyo);
+  saveImage( blu, "img/blurred2.png");
+  IMG* dbl = deblur2( blu, piyo, 16);
+  saveImage( dbl, "img/deblurred3.png");
+
+
+  return 0;
+  */
   //load
   IMG_COL* left = readImageColor("img/DSC_0095.JPG");
   IMG_COL* right = readImageColor("img/DSC_0094.JPG");
@@ -50,7 +62,8 @@ int main(void)
   int disp;
   param[0] = 1.0;
   param[1] = 0.0;
-  for(disp = 1; disp < 2; ++disp){
+  for(disp = 1; disp < MAX_DISPARITY; ++disp){
+    printf("disparity = %d\n",disp);
     convertScaleImage(disparityMap, disparityMap, 0.0, disp);
     IMG* dbl = deblur( left->channel[0],psf,disparityMap, param);
     char filename[256];

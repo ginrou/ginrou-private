@@ -65,6 +65,7 @@ IMG* deblur(const IMG* src,
   Complex srcF[CUT_OFF_SIZE][CUT_OFF_SIZE];
   Complex dstF[CUT_OFF_SIZE][CUT_OFF_SIZE];
 
+
   
   for(int row = 0; row < BlockRows; ++row){
     for(int col = 0 ; col < BlockCols; ++col){
@@ -117,10 +118,12 @@ IMG* deblur(const IMG* src,
 	}//w
       }//h
       
-      printPassedTime();
+
 
     }//col
   }//row
+
+  printPassedTime();
 
 
   //最終的に返す構造体
@@ -133,26 +136,9 @@ IMG* deblur(const IMG* src,
     }
   }
 
-  //normalize
-  double min = DBL_MAX, max = -DBL_MAX;
-  point pt, PT;
-  for( h = CUT_OFF_SIZE/2 ; h < dstMat.row - CUT_OFF_SIZE/2 ;++h){
-    for( w = CUT_OFF_SIZE/2 ; w < dstMat.clm -CUT_OFF_SIZE/2 ;++w){
-      double val = ELEM0(dstMat, h, w);
-      if(val < min) {min = val; pt = Point(w, h);}
-      if(val > max) {max = val; PT = Point(w,h);}
-
-      if( h % 10 == 0 && w % 10 == 0)
-	printf("%d, %d, val = %lf\n",h,w,val);
-
-    }
-  }
-
-
   for( h = 0 ; h < dst->height ; ++h ){
     for( w = 0 ; w < dst->width ; ++w ){
-      IMG_ELEM(dst, h, w) = (uchar)((255.0/(max-min))*( ELEM0(dstMat, h, w) - min));
-      IMG_ELEM(dst, h, w) = (uchar)((255.0/(max-min))*( ELEM0(dstMat, h, w) - min));
+      IMG_ELEM( dst, h, w) = fabs( ELEM0( dstMat, h, w) ) / 3.0;
     }
   }
 
@@ -219,4 +205,66 @@ Mat createWindowFunction(void)
 	}
     }
   return ret;
+}
+
+
+
+IMG* deblur2( const IMG* src, const IMG* psf, int size)
+{
+  double imgIn[FFT_SIZE][FFT_SIZE] = { 0 };
+  double psfIn[FFT_SIZE][FFT_SIZE] = { 0 };
+  double dstIn[FFT_SIZE][FFT_SIZE];
+
+  Complex imgFreq[FFT_SIZE][FFT_SIZE];
+  Complex psfFreq[FFT_SIZE][FFT_SIZE];
+  Complex dstFreq[FFT_SIZE][FFT_SIZE];
+
+  //copy img->imgIn;
+  for( int h = 0 ; h < FFT_SIZE; ++h){
+    for(int w = 0 ; w < FFT_SIZE; ++w){
+      imgIn[h][w] = IMG_ELEM( src, h, w);
+    }
+  }
+  //copy psf -> psfIn
+  //deblur過程でpsfは反転する
+  for(int h = 0; h < psf->height; ++h){
+    for(int w = 0; w < psf->width; ++w){
+      int y = psf->height - h;
+      int x = psf->width - w;
+      psfIn[h][w] = IMG_ELEM(psf, y, x);
+    }
+  }
+
+
+  //fourier transform
+  fourier(imgFreq, imgIn);
+  fourier(psfFreq, psfIn);
+
+
+  printf("fourier transform done\n");
+  printPassedTime();
+
+  //wiener deconvolution
+  wienerdeconvolution( imgFreq, psfFreq, dstFreq, 0.0002);
+
+  // invers fourier transform
+  inverseFourier( dstIn, dstFreq);
+
+  printf("wiener deconvolution and inverse fouiere transform done\n");
+  printPassedTime();
+
+  //copy to IMG structure
+  IMG* dst = createImage(FFT_SIZE, FFT_SIZE);
+  for(int h = 0; h < FFT_SIZE; ++h){
+    for( int w = 0 ; w < FFT_SIZE; ++w){
+      IMG_ELEM(dst, h, w) = fabs(dstIn[h][w]) / 3.0;
+
+      if( h%10 == 0 && w%10 ==0)
+	printf("dst[%03d][%03d] = %lf\n", h, w, dstIn[h][w]);
+
+    }
+  }
+
+  return dst;  
+
 }

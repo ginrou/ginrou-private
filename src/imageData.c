@@ -200,9 +200,9 @@ void saveImage( IMG* img, char *filename)
   IplImage *buf = cvCreateImage( cvSize( img->width, img->height), IPL_DEPTH_8U, 1);
   convertIMG2Ipl(img, buf);
   if( cvSaveImage( filename, buf, 0) )
-    printf("%s is saved %d\n", filename);
+    printf("%s is saved\n", filename);
   else
-    printf("%s cannot save %d\n", filename);
+    printf("%s cannot save\n", filename);
 
   cvReleaseImage(&buf);
   
