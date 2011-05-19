@@ -126,8 +126,13 @@ IMG* deblurFFTWInvariant( IMG* src,
 
 
   //psfをいろいろとリサイズ
-  for( int disparity = 1; disparity < maxDisparity; ++disparity){
+  for( int disparity = 0; disparity < MAX_DISPARITY; ++disparity){
     
+    if(disparity == 0 || disparity > MAX_DISPARITY){
+      psfFFTW[disparity] = NULL;
+      continue;
+    }
+
     //resize psf
     IMG* tmp = createImage( disparity, disparity);
     resizeImage( psfBase, tmp);
