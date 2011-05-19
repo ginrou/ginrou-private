@@ -6,9 +6,9 @@ SRC_DIR = src
 INCLUDE_DIR = src
 LIB_DIR = lib
 
-MAINFILE = main.c
+MAINFILE = test.c
 TARGET = ${MAINFILE:.c=.out}
-SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c blur.c
+SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c 	blur.c deblur2.c
 OBJS := ${SRCS:.c=.o}
 OBJS := ${addprefix ${OBJ_DIR}/, ${OBJS}}
 
@@ -30,7 +30,7 @@ CC = gcc
 CFLAGS =-std=c99 -m64 \
 	-I${INCLUDE_DIR} ${HIURA_LIB_FLAG}
 DEBUG = -g -O0
-CLIBFLAGS = -lm  -lstdc++ #リンクするもの
+CLIBFLAGS = -lm  -lstdc++ -lfftw3 #リンクするもの
 
 ##生成規則
 
