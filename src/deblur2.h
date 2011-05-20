@@ -24,6 +24,7 @@ IMG* deblurFFTWInvariant( IMG* src,
 			  IMG* disparityMap,
 			  double param[2]);
 
+IMG* deblurFFTWResize( IMG* img, IMG* psf, double size);
 
 
 #endif

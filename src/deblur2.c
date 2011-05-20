@@ -285,3 +285,105 @@ IMG* deblurFFTWInvariant( IMG* src,
   return dst;
 
 }
+
+
+IMG* deblurFFTWResize( IMG* img, IMG* psf, double size)
+{
+  double snr = 0.005;
+
+  int h, w, i;
+  
+  size_t imgArrSize = img->height * img->width;
+  size_t psfFH =  psf->height;
+  size_t psfFW =  psf->width;
+  size_t psfArrSize = psfFH * psfFW;
+  
+  printf("img Array size = %d, psf Array Size = %d\n", (int)imgArrSize, (int)psfArrSize);
+
+  fftw_complex* imgF = (fftw_complex*)fftw_malloc( sizeof( fftw_complex ) * imgArrSize );
+  fftw_complex* psfF = (fftw_complex*)fftw_malloc( sizeof( fftw_complex ) * psfArrSize );
+  fftw_complex* dstF = (fftw_complex*)fftw_malloc( sizeof( fftw_complex ) * imgArrSize );  
+
+  if( !imgF || !psfF ){
+    fprintf(stderr, "error in allocatin fftw_complex\n");
+    exit(1);
+  }
+
+  //copy img
+  for( i = 0; i < imgArrSize; ++i){
+    imgF[i][0] = (double)( img->data[i] );
+    imgF[i][1] = 0.0;
+  }
+
+  printf("copy done\n");
+
+  //copy psf
+  for(i=0;i<psfArrSize;++i){
+    psfF[i][0] = 0.0;
+    psfF[i][1] = 0.0;
+  }
+
+
+
+  double sum = 0.0;
+  for(i=0; i < psf->width * psf->height ;++i){
+    sum += (double)( img->data[i] );
+  }
+
+
+  
+  for(h=0;h<psf->height;++h){
+    for(w=0;w<psf->width;++w){
+      psfF[h*psfFW+w][0] = (double)IMG_ELEM( psf, psf->height - h, psf->width - w) / sum;
+    }
+  }
+  
+
+      
+  //make plan & FFT
+  fftw_plan imgPlan = fftw_plan_dft_2d( img->height, img->width, imgF, imgF, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan psfPlan = fftw_plan_dft_2d( psfFH, psfFW, psfF, psfF, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute(imgPlan);
+  fftw_execute(psfPlan);
+  
+  //deconvolution
+  for(h=0;h<img->height;++h){
+    for(w=0;w<img->width;++w){
+      int imgIndex = h * img->width + w;
+      double rh = size / (double)psf->height;
+      double rw = size / (double)psf->width;
+      int psfIndex = ( h / rh ) * psfFW + ( w / rw );
+      
+      double a = imgF[imgIndex][0];
+      double b = imgF[imgIndex][1];
+      double c = psfF[psfIndex][0] / ( rh * rw );
+      double d = psfF[psfIndex][1] / ( rh * rw );
+
+      dstF[imgIndex][0] = ( a*c + b*d ) / ( c*c + d*d + snr );
+      dstF[imgIndex][1] = ( b*c - a*d ) / ( c*c + d*d + snr );
+
+    }
+  }
+  
+  printf("deconvolution done\n");
+
+  //IDFT
+  fftw_plan dstPlan = fftw_plan_dft_2d( img->height, img->width, dstF, dstF, FFTW_BACKWARD, FFTW_ESTIMATE);
+  fftw_execute( dstPlan );
+					
+
+  //dst
+  IMG* dst = createImage( img->height, img->width );
+  double scale = imgArrSize;
+
+  for(i=0;i<imgArrSize;++i){
+    double val = dstF[i][0] * dstF[i][0] + dstF[i][1] * dstF[i][1] ;
+    val = sqrt(val) / scale;
+    dst->data[i] = (uchar)val;
+  }
+
+  printf("all don to do in deblurFFTWResize\n");
+
+  return dst;
+
+}

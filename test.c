@@ -15,6 +15,14 @@
 int main( int argc, char* argv[]){
 
 
+  IMG* img = readImage("img/blurred.png");
+  IMG* psf = readImage("img/Zhou0002.png");
+  if(!img || !psf) return 1;
+  IMG* dbl = deblurFFTWResize(img, psf, 16.0);
+  saveImage(dbl,"img/deblurredResize.png");
+  return 0;
+
+  /*
   IMG* src = readImage("img/DSC_0095.JPG");
   IMG* psf = readImage("img/zhou005-110222.png");
   IMG* dispMap = createImage( src->height, src->width);
@@ -35,5 +43,5 @@ int main( int argc, char* argv[]){
   }
 
   return 0;
-
+  */
 }
