@@ -126,8 +126,13 @@ IMG* deblurFFTWInvariant( IMG* src,
 
 
   //psfをいろいろとリサイズ
-  for( int disparity = 1; disparity < maxDisparity; ++disparity){
+  for( int disparity = 0; disparity < MAX_DISPARITY; ++disparity){
     
+    if(disparity == 0 || disparity > MAX_DISPARITY){
+      psfFFTW[disparity] = NULL;
+      continue;
+    }
+
     //resize psf
     IMG* tmp = createImage( disparity, disparity);
     resizeImage( psfBase, tmp);
@@ -240,7 +245,9 @@ IMG* deblurFFTWInvariant( IMG* src,
 	  if( y < 0 || y >= src->height || x < 0 || x >= src->width){
 	    continue;
 	  }else{
-	    ELEM0(dstMat, y, x) += dstFFTW[idx][0] / (double)arraySize;
+	    double val = dstFFTW[idx][0] * dstFFTW[idx][0] + dstFFTW[idx][1] * dstFFTW[idx][1] ;
+	    val = sqrt(val) / (double)arraySize;
+	    ELEM0(dstMat, y, x) += val;
 	    ELEM0(weightMat, y, x) += ELEM0(window, h, w);
 	  }
 	  
@@ -256,11 +263,24 @@ IMG* deblurFFTWInvariant( IMG* src,
   
   for(h=0;h<dst->height;++h){
     for(w=0;w<dst->width;++w){
-      IMG_ELEM(dst, h, w) = ELEM0( dstMat, h, w) / ELEM0(weightMat, h, w);
+      double val = ELEM0( dstMat, h, w) / ELEM0(weightMat, h, w);
+      if(val > UCHAR_MAX ) val = UCHAR_MAX;
+      if(val < 0 ) val = 0;
+
+      IMG_ELEM(dst, h, w) = (uchar)val;
     }
   }
 
   //cleaning
+  matrixFree(dstMat);
+  matrixFree(window);
+  fftw_free(srcFFTW);
+  fftw_free(dstFFTW);
+  for(i=0;i<MAX_DISPARITY;++i)
+    if( psfFFTW[i] ) fftw_free( psfFFTW[i] );
+  fftw_destroy_plan(srcPlan);
+  fftw_destroy_plan(dstPlan);
+  
 
   return dst;
 
