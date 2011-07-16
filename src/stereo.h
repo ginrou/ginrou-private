@@ -46,7 +46,7 @@ double stereoEval( IMG_COL *srcLeft, IMG_COL* srcRight,
 		   point leftPt, point rightPt,
 		   int blockSize);
 		   
-			    
+Mat createHorizontalFundMat( void );			    
 
 
 #endif

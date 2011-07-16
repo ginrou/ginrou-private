@@ -7,7 +7,6 @@ imageProcessing.c
 void resizeImage(const  IMG* src, IMG* dst)
 {
 
-
   // (H,W) -> (Y,X)
   int H = src->height;
   int W = src->width;
@@ -15,6 +14,7 @@ void resizeImage(const  IMG* src, IMG* dst)
   int Y = dst->height;
   int X = dst->width;
 
+  /*
   for( int y = 0; y < Y ; ++y ) {
       for( int x = 0; x < X; ++x) {
 	
@@ -32,6 +32,20 @@ void resizeImage(const  IMG* src, IMG* dst)
 
       }
   }
+  */
+
+  IplImage* in = cvCreateImage( cvSize( W, H), IPL_DEPTH_8U, 1);
+  convertIMG2Ipl( src, in );
+
+  IplImage* out = cvCreateImage( cvSize( X, Y), IPL_DEPTH_8U, 1);
+
+  cvResize( in, out, CV_INTER_AREA);
+
+  convertIpl2IMG( out, dst);
+
+  cvReleaseImage( &in );
+  cvReleaseImage( &out );
+
 
   return;
 
