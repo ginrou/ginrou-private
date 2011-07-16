@@ -84,9 +84,10 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
       }
 
   }else{//小さい視差へ投げる
+
     IMG_COL *minLeft = createImageColor( srcLeft->height/2, srcLeft->width/2 );
     IMG_COL *minRight = createImageColor( srcRight->height/2, srcRight->width/2 );
-    
+
     //resize
     for(int c = 0; c < 3; ++c){
       resizeImage( srcLeft->channel[c], minLeft->channel[c]);
@@ -295,9 +296,6 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 	for( int y = (-a/b)*(double)x -c/b ; y <= (-a/b)*(double)(x+1) -c/b ; ++y){
 
 
-	  if( h%100 == 0 && w%100 == 0 && maxDisparity == 16)
-	    printf("here!\n");
-
 	  rightPt.x = x;
 	  rightPt.y = y;
 	  
@@ -333,3 +331,19 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 
 
 
+Mat createHorizontalFundMat( void )
+{
+  Mat fund = matrixAlloc( 3, 3);
+  ELEM0( fund, 0, 0) = 0.0;
+  ELEM0( fund, 0, 1) = 0.0;
+  ELEM0( fund, 0, 2) = 0.0;
+  ELEM0( fund, 1, 0) = 0.0;
+  ELEM0( fund, 1, 1) = 0.0;
+  ELEM0( fund, 1, 2) = 1.0;
+  ELEM0( fund, 2, 0) = 0.0;
+  ELEM0( fund, 2, 1) = -1.0;
+  ELEM0( fund, 2, 2) = -0.001;
+
+  return fund;
+
+}
