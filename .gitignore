@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-*.out
-*.DS_Store
-*.o
-=======
 *.o
 *.out
 .DS_Store
->>>>>>> d999c30d2cfa0003023a5056030b59aae7a19b4a
 *.png
