@@ -28,8 +28,11 @@ int main(void)
   double fov = 2.0 * atan( tan(40.0*M_PI/180.0)/2.24905 );
   double tfov = tan( fov/2.0 );
 
+
+  FILE *fp = fopen( "errormap.txt", "w" );
+
   for( int h = 0; h < depthMap->height; ++h){
-    for( int w = 0 ; w < depth->width; ++w ){
+    for( int w = 0 ; w < depthMap->width; ++w ){
       double depth = IMG_ELEM( depthMap, h, w) / 32.0 ;
       double disparity = (W*b)/(2.0*tfov*depth);
       double err;
@@ -40,17 +43,24 @@ int main(void)
       }
 
       err = IMG_ELEM( dispCir, h, w ) - disparity ;
-      IMG_ELEM( errCir, h, w ) = err;
+      IMG_ELEM( errCir, h, w ) = fabs(err);
 
       err = IMG_ELEM( dispZhou, h, w ) - disparity ;
-      IMG_ELEM( errZhou, h, w ) = err;
+      IMG_ELEM( errZhou, h, w ) = fabs(err);
+
+      if( h%10 == 0 && w % 10 == 0){
+	printf("disprity = %lf : ", disparity);
+	printf("%d, ", IMG_ELEM( dispCir, h, w));
+	printf("%d\n ", IMG_ELEM( dispZhou, h, w));
+	fprintf(fp, "%lf, %lf\n", disparity, (double)IMG_ELEM( dispCir, h, w));
+      }
 
     }
   }
   
   saveImage( errCir, "errCir.png" );
   saveImage( errZhou, "errZhou.png" );
-  
+  fclose(fp);
 
   return 0;
 
