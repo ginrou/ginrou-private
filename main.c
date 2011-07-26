@@ -15,34 +15,42 @@
 int main(void)
 {
   
-  IMG_COL *leftCir = readImageColor( "img/blurredLeftCir.png" );
-  IMG_COL *rightCir = readImageColor( "img/blurredRightCir.png" );
-  IMG_COL *leftZhou = readImageColor( "img/blurredLeftZhou.png" );
-  IMG_COL *rightZhou = readImageColor( "img/blurredRightZhou.png" );
+  IMG* dispCir = readImage("img/dispCir.png");
+  IMG* dispZhou = readImage("img/dispZhou.png");
+  IMG* depthMap = readImage("img/depth.png");
 
-  Mat fundMat = createHorizontalFundMat();
+  IMG* errCir = createImage( dispCir->height, dispCir->width );
+  IMG* errZhou = createImage( dispCir->height, dispCir->width );
+  
+  //parameters
+  double W = 512;
+  double b = 0.070434;
+  double fov = 2.0 * atan( tan(40.0*M_PI/180.0)/2.24905 );
+  double tfov = tan( fov/2.0 );
 
-  for(int r = 0; r < 3; ++r){
-    for(int c = 0; c < 3; ++c){
-      printf("%lf   ", ELEM0( fundMat, r, c));
+  for( int h = 0; h < depthMap->height; ++h){
+    for( int w = 0 ; w < depth->width; ++w ){
+      double depth = IMG_ELEM( depthMap, h, w) / 32.0 ;
+      double disparity = (W*b)/(2.0*tfov*depth);
+      double err;
+
+      if( depth >= 255/32 - 1 ) {
+	IMG_ELEM( errCir, h, w ) = 255;
+	IMG_ELEM( errZhou, h, w ) = 255;
+      }
+
+      err = IMG_ELEM( dispCir, h, w ) - disparity ;
+      IMG_ELEM( errCir, h, w ) = err;
+
+      err = IMG_ELEM( dispZhou, h, w ) - disparity ;
+      IMG_ELEM( errZhou, h, w ) = err;
+
     }
-    printf("\n");
   }
-
-  if( leftCir == NULL ||
-      rightCir == NULL ||
-      leftZhou == NULL ||
-      rightZhou == NULL ) 
-    printf("null!\n");
-
-  printf("stereo circle start\n");
-
-  IMG* dispMap = stereoRecursive( leftCir, rightCir, &fundMat, 32, 1);
-  saveImage( dispMap, "img/dispCir.png" );
-
-  printf("stereo Zhou start\n");
-  dispMap = stereoRecursive( leftZhou, rightZhou, &fundMat, 32, 1);
-  saveImage( dispMap, "img/dispZhou.png" );
+  
+  saveImage( errCir, "errCir.png" );
+  saveImage( errZhou, "errZhou.png" );
+  
 
   return 0;
 
