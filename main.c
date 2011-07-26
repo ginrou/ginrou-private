@@ -15,10 +15,10 @@
 int main(void)
 {
   
-  IMG_COL *leftCir = readImageColor( "img/blurredLeftCir.png" );
-  IMG_COL *rightCir = readImageColor( "img/blurredRightCir.png" );
-  IMG_COL *leftZhou = readImageColor( "img/blurredLeftZhou.png" );
-  IMG_COL *rightZhou = readImageColor( "img/blurredRightZhou.png" );
+  IMG_COL *leftCir = readImageColor( "img/blurredCircleLeft.png" );
+  IMG_COL *rightCir = readImageColor( "img/blurredCircleRight.png" );
+  IMG_COL *leftZhou = readImageColor( "img/blurredZhouLeft.png" );
+  IMG_COL *rightZhou = readImageColor( "img/blurredZhouRight.png" );
 
   Mat fundMat = createHorizontalFundMat();
 

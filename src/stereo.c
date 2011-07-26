@@ -109,11 +109,11 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
     //小さい視差での結果を得る
     IMG* dispMin = stereoRecursive( minLeft, minRight, &minFund, 
 				    maxDisparity/2, minDisparity);
-    
+    /*    
     char filename[256];
     sprintf(filename,"img/dispMap%03d-%3d.png",dispMin->height, dispMin->width);
     saveImage( dispMin, filename);
-
+    */
 
     //小さい視差での結果を受けて次のサイズの物を計算
     IMG* dst = stereoNextDisparityMap( srcLeft, srcRight, FundMat,
