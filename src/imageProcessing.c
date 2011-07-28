@@ -86,3 +86,28 @@ void convertScaleImage( const IMG* src,  IMG* dst, double scale, double shift)
   return;
 
 }
+
+// 平均mean, 分散varのホワイトノイズを付加
+void putnoise(const IMG* src, IMG* dst, double mean, double var)
+{
+  srand(time(NULL));
+  
+  for(int h = 0; h < dst->height; ++h){
+    for( int w = 0 ; w < dst->width ; ++w){
+
+      double tmp = 0.0;
+      for(int i = 0; i < 6; ++i){
+	tmp += rand()/(double)RAND_MAX;
+      }
+      tmp = var*(tmp - 3.0 ) + mean;
+
+      double val = (double)IMG_ELEM( src, h, w);
+      if( val + tmp >= 255 )
+	IMG_ELEM( dst, h, w) =  255;
+      else
+	IMG_ELEM( dst, h, w) =  val + tmp;
+
+    }
+  }
+
+}
