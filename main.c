@@ -21,10 +21,12 @@ int main(void)
   IMG_COL* blurredZhouLeft = readImageColor("img/blurredZhouLeft.png");
   IMG_COL* blurredZhouRight = readImageColor("img/blurredZhouRight.png");
 
-  FILE* fp = fopen( "errorData.txt", "w");
+  FILE* fp = fopen( "errorCount.txt", "w");
   fprintf(fp, "##var,  cirError, zhouError\n");
   for(int i = 0; i < 20; ++i){
     double var = (double)i / 2.0;
+
+    /*
     for(int c = 0; c < 3;++c){
       putnoise( blurredCirLeft->channel[c], blurredCirLeft->channel[c], 0.0, var);
       putnoise( blurredCirRight->channel[c], blurredCirRight->channel[c], 0.0, var);
@@ -44,7 +46,7 @@ int main(void)
     dst = stereoRecursive( blurredZhouLeft, blurredZhouRight, &FundMat, 32, 1);
     sprintf(filename, "img/dispZhou%02d.png", i);
     saveImage( dst, filename );
-  
+    */
 
     sprintf(filename, "img/dispCir%02d.png", i);
     IMG* dispCir = readImage(filename);
@@ -72,13 +74,16 @@ int main(void)
 	count++;
 
 	err = IMG_ELEM( dispCir, h, w ) - disparity ;
-	IMG_ELEM( errCir, h, w ) = fabs(err);
-	cirTotal += (int)fabs(err);
+	if(err >= 1.0){
+	  IMG_ELEM( errCir, h, w ) = fabs(err);
+	  cirTotal += 1.0;
+	}
 
 	err = IMG_ELEM( dispZhou, h, w ) - disparity ;
-	IMG_ELEM( errZhou, h, w ) = fabs(err);
-	zhouTotal += (int)fabs(err);
-
+	if( err >= 1.0 ){
+	  IMG_ELEM( errZhou, h, w ) = fabs(err);
+	  zhouTotal += 1.0;
+	}
       }
     }
   
