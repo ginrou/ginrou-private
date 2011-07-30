@@ -22,7 +22,7 @@ typedef struct _IMG_COL{
 
 
 //macro access to data of image data
-#define IMG_ELEM(img, h, w) ((img)->data[ (h)*( (img)->width ) + (w)  ] )
+#define IMG_ELEM(img, h, w) (((img)->data)[ (h)*( (img)->width ) + (w)  ] )
 
 
 //converting image from Ipl <--> IMG

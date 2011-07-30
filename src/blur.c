@@ -97,6 +97,41 @@ IMG* blurFilter( IMG *img, IMG *psf)
 
 }
 
+
+IMG* blurWithPSFMap( IMG* img, Mat psf[], IMG* psfMap)
+{
+  IMG* dst = createImage( img->height, img->width);
+  
+  for( int h = 0; h < dst->height; ++h){
+    for( int w = 0 ; w < dst->width; ++w){
+
+      double sum = 0.0;
+      int idx = (int)IMG_ELEM( psfMap, h, w);
+
+      for( int y = 0; y < psf[idx].row; ++y){
+	for( int x = 0 ; x < psf[idx].clm; ++x){
+	  int py = h + y - psf[idx].row / 2;
+	  int px = w + x - psf[idx].clm / 2;
+
+	  if( py < 0  || py >= dst->height ||
+	      px < 0  || px >= dst->width){
+	    continue;
+	  }else{
+	    sum += (double)IMG_ELEM( img, py, px) * ELEM0( psf[idx], y, x);
+	  }
+	}
+      }
+
+      IMG_ELEM( dst, h, w) = sum;
+
+    }
+  }
+
+  return dst;
+
+}
+
+
 void normalize( Complex arr[FFT_SIZE][FFT_SIZE] )
 {
   double norm = 0.0;

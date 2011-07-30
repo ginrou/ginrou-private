@@ -12,6 +12,8 @@
 
 IMG* blur(IMG *img, IMG* psf);
 IMG* blurFilter( IMG *img, IMG *psf);
+IMG* blurWithPSFMap( IMG* img, Mat psf[], IMG* psfMap);
+
 
 void normalize( Complex arr[FFT_SIZE][FFT_SIZE] );
 
