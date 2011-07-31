@@ -9,6 +9,7 @@
 #include <imageData.h>
 #include <imageProcessing.h>
 #include <util.h>
+#include <deblur.h>
 
 IMG* blur(IMG *img, IMG* psf);
 IMG* blurFilter( IMG *img, IMG *psf);

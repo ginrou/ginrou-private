@@ -108,6 +108,8 @@ IMG* blurWithPSFMap( IMG* img, Mat psf[], IMG* psfMap)
       double sum = 0.0;
       int idx = (int)IMG_ELEM( psfMap, h, w);
 
+
+
       for( int y = 0; y < psf[idx].row; ++y){
 	for( int x = 0 ; x < psf[idx].clm; ++x){
 	  int py = h + y - psf[idx].row / 2;
@@ -122,6 +124,7 @@ IMG* blurWithPSFMap( IMG* img, Mat psf[], IMG* psfMap)
 	}
       }
 
+      if(idx == MAX_DISPARITY) sum = 255.0;
       IMG_ELEM( dst, h, w) = sum;
 
     }

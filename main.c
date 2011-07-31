@@ -12,25 +12,42 @@
 
 #define LOAD_DISPARITY_MAP YES
 
+
 int main(void)
 {
-  IMG* img = readImage( "img/LENNA.bmp" );
-  IMG* tmp = readImage( "img/psf.png" );
+  IMG* img = readImage( "img/MBP/screan.png" );
+  Mat psf[MAX_DISPARITY];
+
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+    psf[d] = matrixAlloc( 1, MAX_DISPARITY);
+    
+    for(int h = 0; h < psf[d].row; ++h){
+      for(int w = 0; w < psf[d].clm; ++w){
+	ELEM0( psf[d], h, w) = 0.0;
+      }
+    }
+    ELEM0( psf[d], 0, psf[d].clm/2 - d/2) = 1.0;
+
+  }
+
+  IMG* map = readImage("img/MBP/disparityMap.png");
+
+  convertScaleImage(map, map, 1.0/4.0, 0.0);
   
-  Mat psf[10];
-  psf[0] = matrixAlloc( tmp->height, tmp->width);
-  for(int h = 0; h < tmp->height; ++h){
-    for( int w = 0; w < tmp->width; ++w){
-      ELEM0( psf[0], h, w) = IMG_ELEM( tmp, h, w);
+  IMG* mapShift = createImage( map->width, map->height);
+  convertScaleImage(mapShift, mapShift, 0.0, MAX_DISPARITY);
+  for(int h = 0; h < map->height;++h){
+    for(int w = 0 ; w < map->width; ++w){
+      int disp = IMG_ELEM( map, h, w) ;
+      IMG_ELEM(mapShift, h, w + disp/2) = disp;
     }
   }
 
-  normalizeMat( &(psf[0]), &(psf[0]) );
-  
-  IMG* map = createImage( img->height, img->width);
-  convertScaleImage(map, map, 0.0, 0.0);
-
   IMG* dst =  blurWithPSFMap( img, psf, map);
   
-  saveImage( dst, "img/test/test.png");
+
+  saveImage( dst, "img/MBP/test.png");
+
+  return 0;
+
 }

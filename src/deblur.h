@@ -23,7 +23,7 @@
 #define BLOCK_SIZE 16 //2^nのほうが都合が良い
 
 #ifndef MAX_DISPARITY
-#define MAX_DISPARITY 64
+#define MAX_DISPARITY 32
 #endif
 
 // dst[i] = src[i] / filter[i] のような感じでぼけ除去を行う

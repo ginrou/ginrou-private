@@ -20,6 +20,38 @@ void showImage( const IMG *img, int keyWait)
   return;
 }
 
+
+ //視差マップの確認用
+char dispMapWindow[] = "disparity map"; // ウィンドウ名
+void mouse(int event, int x, int y, int flags, void *param);
+void showDispMap( const IMG* img)
+{
+  IplImage *screan = cvCreateImage( cvSize(img->width, img->height), IPL_DEPTH_8U, 1);
+  convertIMG2Ipl( img, screan);
+  cvNamedWindow( dispMapWindow, CV_WINDOW_AUTOSIZE);
+  cvSetMouseCallback( dispMapWindow, mouse , (void*)screan);
+  
+  while(1){
+    cvShowImage( dispMapWindow, screan);
+    int c = cvWaitKey(0);
+    if( c == '\x1b' || c == 'q' )
+      break;
+  }
+  cvDestroyWindow( dispMapWindow );
+  cvReleaseImage( &screan );
+  return;
+}
+
+// マウスのコールバック
+void mouse(int event, int x, int y, int flags, void *param)
+{
+  if( event == CV_EVENT_LBUTTONDOWN )
+    printf("disparity at (h, w) = (%3d, %3d) = %d\n"
+	   , y, x, (int)CV_IMAGE_ELEM( (IplImage*)param, uchar, y, x)/4);
+}
+
+
+
 //処理時間計測用
 struct timeval tv;
 double startTime = 0.0;

@@ -19,6 +19,7 @@
 #include "imageData.h"
 
 void showImage(  const IMG *img, int keyWait);
+void showDispMap( const IMG* img);
 void startClock(void);
 double getPassedTime(void);
 void printPassedTime(void);
