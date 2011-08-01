@@ -13,6 +13,7 @@ int batch110801( int argc, char* argv[] )
   Mat fund = createHorizontalFundMat();
 
   IMG* dispMap = stereoRecursive( srcLeft, srcRight, &fund, 20, 0);
+  saveImage( dispMap, "img/MPro/debug/dispMap.png");
 
   double par[] = {1.528633, -26.839933 };  
 
@@ -25,7 +26,7 @@ int batch110801( int argc, char* argv[] )
     sprintf( filename, "img/MPro/exp/test/dbl%02d.png", disp);
     saveImage( dbl, filename );
     printf("deblur finish! %d\n", disp);
-    return 0;
+
   }
   return 0;
 }
