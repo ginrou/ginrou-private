@@ -11,6 +11,7 @@
 #include <complex.h>
 #include <blur.h>
 #include <deblur.h>
+#include <deblur2.h>
 
 int batch110801( int argc, char* argv[] );
 

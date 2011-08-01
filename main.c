@@ -6,6 +6,7 @@
 #include "stereo.h"
 #include "deblur.h"
 #include "blur.h"
+#include "batch.h"
 
 #define YES 1
 #define NO 0
@@ -13,8 +14,11 @@
 #define LOAD_DISPARITY_MAP YES
 
 
-int main(void)
+int main(int argc, char* argv[])
 {
+  
+  return batch110801(argc, argv);
+
   IMG* img = readImage( "img/MBP/center.png" );
   IMG* gt  = readImage( "img/MBP/left.png" );
   Mat psf[MAX_DISPARITY];

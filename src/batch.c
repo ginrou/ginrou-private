@@ -6,20 +6,26 @@ int batch110801( int argc, char* argv[] )
 
   
   // 実験材料とパラメータ
-  IMG* srcLeft  = readImage("img/MBP/exp/blurredLeft.png");
-  IMG* srcRight = readImage("img/MBP/exp/blurredRight.png");
-  IMG* dispMap  = readImage("img/MBP/exp/disparityMap.png");
-  IMG* psfBase  = readPixel("img/MBP/exp/Zhou0002.png");
-  double DTPparam[2] = {1.599641, -27.508864 };  
+  IMG_COL* srcLeft  = readImageColor("img/MPro/debug/DSC_0094.JPG");
+  IMG_COL* srcRight  = readImageColor("img/MPro/debug/DSC_0095.JPG");
+  IMG* psfBase  = readImage("img/MPro/debug/zhou005-110222.png");
 
-  convertScaleImage( dispMap, dispMap, 1.0/4.0, 0.0);
-  
-  IMG_COL* imgCol = createImageColor( srcLeft->height, srcLeft->width);
-  for(int c = 0; c < 3; ++C){
-    imgCol->channel[c] = deblurFFTWInvariant( srcLeft, psfBase, dispMap, DTPparam);
+  Mat fund = createHorizontalFundMat();
+
+  IMG* dispMap = stereoRecursive( srcLeft, srcRight, &fund, 20, 0);
+
+  double par[] = {1.528633, -26.839933 };  
+
+  char filename[256];
+
+  par[0] = 1.0;par[1] = 0.0;
+  for(int disp = 0; disp <MAX_DISPARITY; ++disp){
+    convertScaleImage( dispMap, dispMap, 0.0, disp);
+    IMG *dbl = deblurFFTWInvariant( srcLeft->channel[0], psfBase, dispMap, par);
+    sprintf( filename, "img/MPro/exp/test/dbl%02d.png", disp);
+    saveImage( dbl, filename );
+    printf("deblur finish! %d\n", disp);
+    return 0;
   }
-
-  saveImageColor( imgCol, "img/MBP/exp/deblur.png" );
-
   return 0;
 }

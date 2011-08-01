@@ -112,7 +112,7 @@ IMG* deblurFFTWInvariant( IMG* src,
   //作業用領域
   fftw_complex *srcFFTW = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * arraySize );
   fftw_complex *dstFFTW = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * arraySize );
-  fftw_complex *psfFFTW[MAX_DISPARITY]; 
+  fftw_complex *psfFFTW[MAX_DISPARITY];
 
   //結果保存用
   Mat dstMat = matrixAlloc( src->height, src->width );
@@ -127,14 +127,12 @@ IMG* deblurFFTWInvariant( IMG* src,
 
   //psfをいろいろとリサイズ
   for( int disparity = 0; disparity < MAX_DISPARITY; ++disparity){
-    
-    if(disparity == 0 || disparity > MAX_DISPARITY){
-      psfFFTW[disparity] = NULL;
-      continue;
-    }
 
+    double size = disparity * param[0] + param[1];
+    if( abs(size) == 0 ) size = 1.0;
+    
     //resize psf
-    IMG* tmp = createImage( disparity, disparity);
+    IMG* tmp = createImage( abs(size), abs(size));
     resizeImage( psfBase, tmp);
 
     //get norm
@@ -145,6 +143,12 @@ IMG* deblurFFTWInvariant( IMG* src,
       }
     } 
     
+    printf( "disparity = %d, size = %lf, norm = %lf\n", disparity, size, norm);
+
+    char filename[256];
+    sprintf( filename, "img/MPro/exp/psf%02d.png", disparity);
+    //saveImage( tmp, filename);
+
     //malloc psf[disparity] and set zero
     psfFFTW[disparity] = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * arraySize );
     for( int i = 0; i < arraySize; ++i){
@@ -155,7 +159,8 @@ IMG* deblurFFTWInvariant( IMG* src,
     //copy to psfFFTW and normalize 
     for( h = 0; h < tmp->height ; ++h){
       for( w = 0; w < tmp->width ; ++w){
-	psfFFTW[disparity][ h * CUT_OFF_SIZE + w][0] = (double)IMG_ELEM( tmp, disparity - h, disparity - w) / norm ;
+	psfFFTW[disparity][h*CUT_OFF_SIZE+w][0]
+	  = (double)IMG_ELEM( tmp, h, w) / norm ;
       }
     }
 
@@ -180,7 +185,6 @@ IMG* deblurFFTWInvariant( IMG* src,
     }
   }
 
-  
 
   //deblur
   
@@ -192,7 +196,6 @@ IMG* deblurFFTWInvariant( IMG* src,
   for( int row = 0; row < BlockRows; ++row){
     for( int col = 0 ; col < BlockCols; ++col){
 
-      
       //copy src image to srcFFTW
       for( h = 0; h < CUT_OFF_SIZE; ++h){
 	for( w= 0 ; w < CUT_OFF_SIZE; ++w){
@@ -216,7 +219,6 @@ IMG* deblurFFTWInvariant( IMG* src,
 
       //kernelSizeの決定
       int disparity = (int)IMG_ELEM(disparityMap, row*BLOCK_SIZE + BLOCK_SIZE/2, col*BLOCK_SIZE + BLOCK_SIZE/2);
-      int kernelSize = param[0] * (double)disparity + param[1];
       
       //fourier transform of src
       fftw_execute( srcPlan );
@@ -225,8 +227,8 @@ IMG* deblurFFTWInvariant( IMG* src,
       for(i = 0 ; i < arraySize; ++i){
 	double a = srcFFTW[i][0];
 	double b = srcFFTW[i][1];
-	double c = psfFFTW[kernelSize][i][0];
-	double d = psfFFTW[kernelSize][i][1];
+	double c = psfFFTW[disparity][i][0];
+	double d = psfFFTW[disparity][i][1];
 	
 	dstFFTW[i][0] = ( a*c + b*d ) / ( c*c + d*d + snr );
 	dstFFTW[i][1] = ( b*c - a*d ) / ( c*c + d*d + snr );
@@ -235,12 +237,19 @@ IMG* deblurFFTWInvariant( IMG* src,
       //IDFT of dst
       fftw_execute( dstPlan );
 
+      IMG* dbg = createImage( CUT_OFF_SIZE, CUT_OFF_SIZE);
+      
+
       //add to dstMat
       for( h = 0; h < CUT_OFF_SIZE; ++h){
 	for( w= 0 ; w < CUT_OFF_SIZE; ++w){
+
 	  int idx = h * CUT_OFF_SIZE + w;
 	  int y = h + row * BLOCK_SIZE + (BLOCK_SIZE-CUT_OFF_SIZE)/2;
 	  int x = w + col * BLOCK_SIZE + (BLOCK_SIZE-CUT_OFF_SIZE)/2;
+
+	  double hoge = dstFFTW[idx][0] * dstFFTW[idx][0] + dstFFTW[idx][1] * dstFFTW[idx][1] ;
+	  IMG_ELEM( dbg, h, w) = hoge/ELEM0(window, h, w);
 
 	  if( y < 0 || y >= src->height || x < 0 || x >= src->width){
 	    continue;
@@ -254,9 +263,17 @@ IMG* deblurFFTWInvariant( IMG* src,
 	}
       }
       //end of adding
+      
+      char filename[256];
+      sprintf( filename, "img/MPro/exp/test/blk%02d-%02d.png", row, col);
+      //saveImage( dbg, filename );
+      releaseImage(&dbg);
 
     }//col
   }//row
+
+
+  printf("end of block processing\n");
 
   //get result
   IMG* dst = createImage( src->height, src->width);
@@ -271,6 +288,8 @@ IMG* deblurFFTWInvariant( IMG* src,
     }
   }
 
+  printf("end of merge\n");
+  
   //cleaning
   matrixFree(dstMat);
   matrixFree(window);
