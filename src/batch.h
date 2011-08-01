@@ -13,6 +13,7 @@
 #include <deblur.h>
 #include <deblur2.h>
 
+int batch110731( int argc, char* argv[] );
 int batch110801( int argc, char* argv[] );
 
 
