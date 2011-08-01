@@ -1,5 +1,52 @@
 #include <batch.h>
 
+int batch110731( int argc, char* argv[] )
+{
+  
+  IMG* img = readImage( "img/MBP/center.png" );
+  IMG* gt  = readImage( "img/MBP/left.png" );
+  Mat psf[MAX_DISPARITY];
+
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+    psf[d] = matrixAlloc( 1, MAX_DISPARITY);
+    
+    for(int h = 0; h < psf[d].row; ++h){
+      for(int w = 0; w < psf[d].clm; ++w){
+	ELEM0( psf[d], h, w) = 0.0;
+      }
+    }
+    ELEM0( psf[d], 0, psf[d].clm/2 + d/2) = 1.0;
+
+    IMG* tmp = createImage( psf[d].row, psf[d].clm);
+    for(int h = 0; h < psf[d].row; ++h){
+      for(int w = 0; w < psf[d].clm; ++w){
+	IMG_ELEM(tmp, h, w) = ELEM0( psf[d], h, w);
+      }
+    }
+    
+  }
+
+  IMG* map = readImage("img/MBP/disparityMapLeft.png");
+
+  convertScaleImage(map, map, 1.0/4.0, 0.0);
+  
+  IMG* dst =  blurWithPSFMap( img, psf, map);
+
+  IMG* dif = createImage( dst->height, dst->width );
+  for( int h = 0 ; h < dst->height; ++h){
+    for(int w = 0; w < dst->width; ++w){
+      IMG_ELEM( dif, h, w) = 15.0*abs(IMG_ELEM( dst, h, w) - IMG_ELEM(gt, h, w));
+    }
+  }
+  
+
+  saveImage( dst, "img/MBP/test.png");
+  saveImage( dif, "img/MBP/dif.png");
+  return 0;
+
+
+}
+
 int batch110801( int argc, char* argv[] )
 {
   // stereo + deblurのシステムの実装
@@ -29,3 +76,7 @@ int batch110801( int argc, char* argv[] )
   }
   return 0;
 }
+
+
+
+
