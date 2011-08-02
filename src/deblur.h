@@ -13,18 +13,7 @@
 #include <stereo.h>
 
 
-#ifndef PSF_SIZE  //入力するpsfの画像サイズ
-#define PSF_SIZE 64
-#endif
-
 #define SNR 0.005
-
-#define CUT_OFF_SIZE FFT_SIZE //切り取る大きさはFFTのと同じにしなければならない
-#define BLOCK_SIZE 16 //2^nのほうが都合が良い
-
-#ifndef MAX_DISPARITY
-#define MAX_DISPARITY 32
-#endif
 
 // dst[i] = src[i] / filter[i] のような感じでぼけ除去を行う
 void wienerdeconvolution( Complex src[FFT_SIZE][FFT_SIZE], //ぼけ画像(入力)

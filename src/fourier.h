@@ -1,12 +1,8 @@
 #ifndef __FOURIER__
 #define __FOURIER__
 
+#include "include.h"
 
-#ifndef FFT_SIZE
-#define FFT_SIZE 64
-#endif
-
-#include <complex.h>
 
 void fourier(Complex out[][FFT_SIZE],  double in[][FFT_SIZE] );
 void inverseFourier( double out[][FFT_SIZE], Complex in[][FFT_SIZE]);

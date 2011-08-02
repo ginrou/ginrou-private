@@ -12,7 +12,7 @@ left camera
 	aperture patern : 0
 	DTPParam : PSFSize = 1.500331 * disparity + -25.745794
 
-ight camera
+Right camera
 	focal depth : 4.360660 
 	aperture patern : 0
 	DTPParam : PSFSize = 3.579218 * disparity + -26.265516

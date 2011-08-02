@@ -55,3 +55,43 @@ void makeBlurPSF( Mat src[MAX_DISPARITY],
   return;
 }
 
+void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
+		       IMG* aperture, double par[2])
+{
+
+  for( int disp = 0; disp < MAX_DISPARITY; ++disp){
+    double size = (double)disp * par[0] + par[1];
+    int sz = abs(size);
+    if(sz == 0 )sz = 1;
+
+    IMG* img = createImage( sz, sz );
+    resizeImage( aperture, img);
+
+    psf[disp] = matrixAlloc( sz, MAX_DISPARITY + sz );
+
+    // PSFの中央を決める
+    int center;
+    if( cam == LEFT_CAM ){
+      center = ( MAX_DISPARITY + sz - disp ) / 2 ;
+    }else if( cam == RIGHT_CAM ){
+      center = ( MAX_DISPARITY + sz + disp ) / 2 ;
+    }
+
+    // PSFを埋めて行く
+    matrixZero( psf[disp] );
+    for(int y = 0; y < sz ; ++y){
+      for( int x = 0; x < sz ; ++x){
+	int p;
+	if( size < 0 ) p = center - x + sz/2;
+	else p = center + x - sz/2; 
+
+	if( p < 0 || p >= psf[disp].clm ) continue;
+
+	ELEM0( psf[disp], y, p) = IMG_ELEM( img, y, x);
+
+      }
+    }
+      
+    releaseImage(&img);
+  }
+}
