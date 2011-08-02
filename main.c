@@ -4,17 +4,22 @@
 int main(int argc, char* argv[])
 {
 
-  IMG* left = readImage("img/MBP/110802/blurredLeft.png");
-  IMG* right = readImage("img/MBP/110802/blurredRight.png");  
+  IMG* left = readImage("img/MBP/110802-01/blurredLeft.png");
+  IMG* right = readImage("img/MBP/110802-01/blurredRight.png");  
   IMG* cir = readImage("img/MBP/110802/circle.png");
   Mat psfLeft[MAX_DISPARITY], psfRight[MAX_DISPARITY];
-  double par[2] = {1.47725, -25.554940};
-  char filename[256];
-
   Mat tmpPSF[MAX_DISPARITY];
+  char filename[256];
+  double par[2];
+
+
+  par[0] = 1.500331;
+  par[1] = -25.745794;
   makeShiftPSF(tmpPSF, LEFT_CAM);
   makeBlurPSF( tmpPSF, psfLeft, cir, par );
 
+  par[0] = 3.579218;
+  par[1] = -26.265516;
   makeShiftPSF(tmpPSF, RIGHT_CAM);
   makeBlurPSF( tmpPSF, psfRight, cir, par );  
 
@@ -23,9 +28,16 @@ int main(int argc, char* argv[])
     IMG* img = createImage( psfLeft[disp].row, psfLeft[disp].clm );
     convertMat2IMG( &(psfLeft[disp]), img);
 
-    sprintf(filename, "img/MBP/110802/test/psf%02d.png", disp);
+    sprintf(filename, "img/MBP/110802-01/test/psfLeft%02d.png", disp);
     saveImage( img, filename);
+    releaseImage(&img);
     
+    img = createImage( psfRight[disp].row, psfRight[disp].clm );
+    convertMat2IMG( &(psfRight[disp]), img);
+    sprintf(filename, "img/MBP/110802-01/test/psfRight%02d.png", disp);
+    saveImage( img, filename);
+    releaseImage(&img);
+
     normalizeMat( psfLeft[disp], psfLeft[disp]);
     normalizeMat( psfRight[disp], psfRight[disp]);
   }
@@ -40,11 +52,11 @@ int main(int argc, char* argv[])
     convertScaleImage( map, map, 0.0, d );
 
     leftConv[d] = blurWithPSFMap( left, psfLeft, map );
-    sprintf(filename, "img/MBP/110802/test/%02dbluLeft.png", d);
+    sprintf(filename, "img/MBP/110802-01/test/%02dbluLeft.png", d);
     saveImage( leftConv[d], filename );
 
     rightConv[d] = blurWithPSFMap( right, psfRight, map );
-    sprintf(filename, "img/MBP/110802/test/%02dbluRight.png", d);
+    sprintf(filename, "img/MBP/110802-01/test/%02dbluRight.png", d);
     saveImage( rightConv[d], filename );
 
   }
