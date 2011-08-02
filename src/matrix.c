@@ -757,6 +757,17 @@ int matrixUnit(Mat unit) {
 	return 0;
 }
 
+void   matrixZero(Mat m)
+{
+  int r, c;
+  for( r = 0; r < m.row; ++r){
+    for( c = 0; c < m.clm; ++c){
+      ELEM0(m, r, c ) = 0.0;
+    }
+  }
+
+}
+
 Vec vecAlloc( int clm )
 {
     Vec     v;

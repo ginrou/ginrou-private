@@ -61,6 +61,7 @@ void   matrixFree(Mat m);
 int    matrixDup(Mat dest, Mat source);
 Mat    matrixAllocDup(Mat source);
 int    matrixUnit(Mat unit);
+void   matrixZero(Mat m);
 Mat    matrixAllocUnit(int dim);
 int    matrixMul(Mat dest, Mat a, Mat b);
 Mat    matrixAllocMul(Mat a, Mat b);

@@ -34,7 +34,6 @@ void convertIpl2IMG( const IplImage* src, IMG* dst);
 IMG* readImage( char* filename );
 IMG_COL* readImageColor( char* filename );
 
-
 //save IMG structure to file
 void saveImage( IMG* img, char *filename);
 void saveImageColor( IMG_COL *img, char *filename);
@@ -49,6 +48,10 @@ void releaseImageColor( IMG_COL **img);
 
 //clone image (create and convert);
 IMG* cloneImage( const IMG* src, IMG *dst);
+
+//convert image <--> matrix
+void convertIMG2Mat( IMG* src, Mat* dst); 
+void convertMat2IMG( Mat* src, IMG* dst);
 
 
 #endif __IMAGE_DATA__

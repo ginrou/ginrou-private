@@ -231,3 +231,30 @@ void saveImageColor( IMG_COL *img, char *filename)
   cvReleaseImage(&buf);
   return;
 }
+
+
+void convertIMG2Mat( IMG* src, Mat* dst)
+{
+  if( dst == NULL ) return;
+  if( dst->row != src->height || dst->clm != src->width) return;
+  
+  for(int h = 0; h < dst->row; ++h){
+    for(int w = 0 ; w < dst->clm; ++w){
+      ELEM0(*dst, h, w) = IMG_ELEM( src, h, w);
+    }
+  }
+  return;
+}
+
+void convertMat2IMG( Mat* src, IMG* dst)
+{
+ if( dst == NULL || src == NULL )return;
+ if( dst->height != src->row || dst->width != src->clm ) return;
+
+ for(int h = 0; h < dst->height ; h++){
+   for( int w = 0 ; w < dst->width ; ++w){
+     IMG_ELEM( dst, h, w) = (unsigned char)ELEM0(*src, h, w);
+   }
+ }
+ return;
+}
