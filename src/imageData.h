@@ -8,6 +8,8 @@
 #include <cv.h>
 #include <highgui.h>
 
+#include <matrix.h>
+
 typedef struct _IMG{
   int width;
   int height;

@@ -1,13 +1,7 @@
 #ifndef __PSF__
 #define __PSF__
 
-#include "imageData.h"
-#include "util.h"
-#include "imageProcessing.h"
-#include "stereo.h"
-#include "deblur.h"
-#include "blur.h"
-#include "batch.h"
+#include "include.h"
 
 void makeShiftPSF(Mat psf[MAX_DISPARITY], int cam);
 void makeBlurPSF( Mat src[MAX_DISPARITY], 

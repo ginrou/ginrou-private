@@ -52,20 +52,20 @@ void resizeImage(const  IMG* src, IMG* dst)
 }
 
 
-void normalizeMat(Mat *src, Mat *dst)
+void normalizeMat(Mat src, Mat dst)
 {
   //compute sum
   double sum = 0.0;
-  for(int row = 0; row < src->row; ++row){
-    for(int col = 0; col < src->clm; ++col){
-      sum += ELEM0(*src, row, col);
+  for(int row = 0; row < src.row; ++row){
+    for(int col = 0; col < src.clm; ++col){
+      sum += ELEM0(src, row, col);
     }
   }
 
   //devide by sum
-  for(int row = 0; row < dst->row; ++row){
-    for(int col = 0; col < dst->clm ; ++col){
-      ELEM0(*dst, row, col) = ELEM0(*src, row, col) / sum;
+  for(int row = 0; row < dst.row; ++row){
+    for(int col = 0; col < dst.clm ; ++col){
+      ELEM0(dst, row, col) = ELEM0(src, row, col) / sum;
     }
   }
 

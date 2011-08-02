@@ -1,22 +1,5 @@
 #include <stdio.h>
-
-#include "imageData.h"
-#include "util.h"
-#include "imageProcessing.h"
-#include "stereo.h"
-#include "deblur.h"
-#include "blur.h"
-#include "batch.h"
-#include "psf.h"
-
-#define YES 1
-#define NO 0
-
-#define LOAD_DISPARITY_MAP YES
-
-#define LEFT_CAM 0
-#define CENTER_CAM 1
-#define RIGHT_CAM 2
+#include "include.h"
 
 int main(int argc, char* argv[])
 {
@@ -32,11 +15,11 @@ int main(int argc, char* argv[])
 
   for(int disp = 0; disp < MAX_DISPARITY; ++disp){
     IMG* img = createImage( dst[disp].row, dst[disp].clm );
-    convertMat2IMG( psf[disp], img);
+    convertMat2IMG( &(psf[disp]), img);
     char filename[256];
     sprintf(filename, "img/MBP/psf%02d.png", disp);
     saveImage( img, filename);
-    normalizeMat( psf[disp], psd[disp]);
+    normalizeMat( psf[disp], psf[disp]);
   }
 
   return 0;

@@ -36,8 +36,6 @@ void makeBlurPSF( Mat src[MAX_DISPARITY],
 
     matrixZero(dst[disp]);
 
-    printf("d = %d size = %lf\n", disp, size);
-
     for(int h = 0; h < src[disp].row; ++h){
       for(int w = 0; w < src[disp].clm; ++w){
 	
