@@ -29,7 +29,7 @@ void makeBlurPSF( Mat src[MAX_DISPARITY],
     
     double size = (double)disp * par[0] + par[1];
     if(fabs(size) < 1.0 ) size = 1.0;
-    dst[disp] = matrixAlloc( abs(size) , 2.0*abs(size) + src[disp].clm );
+    dst[disp] = matrixAlloc( abs(size) , abs(size) + src[disp].clm );
     
     IMG* psf = createImage( abs(size), abs(size) );
     resizeImage( aperture, psf );

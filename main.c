@@ -18,11 +18,10 @@ int main(int argc, char* argv[])
   makeShiftPSF(tmpPSF, RIGHT_CAM);
   makeBlurPSF( tmpPSF, psfRight, cir, par );  
 
-
   for(int disp = 0; disp < MAX_DISPARITY; ++disp){
     
     IMG* img = createImage( psfLeft[disp].row, psfLeft[disp].clm );
-    convertMat2IMG( &(psfRight[disp]), img);
+    convertMat2IMG( &(psfLeft[disp]), img);
 
     sprintf(filename, "img/MBP/110802/test/psf%02d.png", disp);
     saveImage( img, filename);
@@ -39,12 +38,13 @@ int main(int argc, char* argv[])
 
   for(int d = 0; d < MAX_DISPARITY; ++d ){
     convertScaleImage( map, map, 0.0, d );
-    leftConv[d] = blurWithPSFMap( left, psfRight, map );
-    rightConv[d] = blurWithPSFMap( right, psfLeft, map );
 
-    sprintf(filename, "img/MBP/110802/test/bluLeft%02d.png", d);
+    leftConv[d] = blurWithPSFMap( left, psfLeft, map );
+    sprintf(filename, "img/MBP/110802/test/%02dbluLeft.png", d);
     saveImage( leftConv[d], filename );
-    sprintf(filename, "img/MBP/110802/test/bluRight%02d.png", d);
+
+    rightConv[d] = blurWithPSFMap( right, psfRight, map );
+    sprintf(filename, "img/MBP/110802/test/%02dbluRight.png", d);
     saveImage( rightConv[d], filename );
 
   }
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
       int disp;
 
       for(int d = 0; d < MAX_DISPARITY; ++d){
-	int blk = 4;
+	int blk = 9;
 	double err = 0.0;
 	double hoge;
 
