@@ -3,24 +3,92 @@
 
 int main(int argc, char* argv[])
 {
-  IMG* cir = readImage("img/MBP/circle.png");
-  Mat psf[MAX_DISPARITY];
-  Mat dst[MAX_DISPARITY];
-  makeShiftPSF(psf, LEFT_CAM);
-  double par[2] = {1.0, 1.0};
-  
-  makeBlurPSF( psf, dst, cir, par );
 
-  printf("make psf done\n");
+  IMG* left = readImage("img/MBP/110802/blurredLeft.png");
+  IMG* right = readImage("img/MBP/110802/blurredRight.png");  
+  IMG* cir = readImage("img/MBP/110802/circle.png");
+  Mat psfLeft[MAX_DISPARITY], psfRight[MAX_DISPARITY];
+  double par[2] = {1.47725, -25.554940};
+  char filename[256];
+
+  Mat tmpPSF[MAX_DISPARITY];
+  makeShiftPSF(tmpPSF, LEFT_CAM);
+  makeBlurPSF( tmpPSF, psfLeft, cir, par );
+
+  makeShiftPSF(tmpPSF, RIGHT_CAM);
+  makeBlurPSF( tmpPSF, psfRight, cir, par );  
+
 
   for(int disp = 0; disp < MAX_DISPARITY; ++disp){
-    IMG* img = createImage( dst[disp].row, dst[disp].clm );
-    convertMat2IMG( &(psf[disp]), img);
-    char filename[256];
-    sprintf(filename, "img/MBP/psf%02d.png", disp);
+    
+    IMG* img = createImage( psfLeft[disp].row, psfLeft[disp].clm );
+    convertMat2IMG( &(psfRight[disp]), img);
+
+    sprintf(filename, "img/MBP/110802/test/psf%02d.png", disp);
     saveImage( img, filename);
-    normalizeMat( psf[disp], psf[disp]);
+    
+    normalizeMat( psfLeft[disp], psfLeft[disp]);
+    normalizeMat( psfRight[disp], psfRight[disp]);
   }
+  printf("make psf done\n");
+
+  
+  IMG* leftConv[MAX_DISPARITY];
+  IMG* rightConv[MAX_DISPARITY];
+  IMG* map = createImage( left->height, left->width );
+
+  for(int d = 0; d < MAX_DISPARITY; ++d ){
+    convertScaleImage( map, map, 0.0, d );
+    leftConv[d] = blurWithPSFMap( left, psfRight, map );
+    rightConv[d] = blurWithPSFMap( right, psfLeft, map );
+
+    sprintf(filename, "img/MBP/110802/test/bluLeft%02d.png", d);
+    saveImage( leftConv[d], filename );
+    sprintf(filename, "img/MBP/110802/test/bluRight%02d.png", d);
+    saveImage( rightConv[d], filename );
+
+  }
+
+  IMG* dispMap = createImage( left->height, left->width );
+  for( int h = 0; h < dispMap->height; ++h){
+    for( int w = 0; w < dispMap->width; ++w){
+      
+      double min = DBL_MAX;
+      int disp;
+
+      for(int d = 0; d < MAX_DISPARITY; ++d){
+	int blk = 4;
+	double err = 0.0;
+	double hoge;
+
+	// ブロックマッチング
+	for(int y = 0; y < blk; ++y){
+	  for(int x= 0 ; x < blk; ++x){
+	    
+	    if( h+y >= dispMap->height || w+x >= dispMap->width) 
+	      continue;
+
+	    hoge = IMG_ELEM( leftConv[d], h+y, w+x ) - IMG_ELEM( rightConv[d], h+y, w+x);
+	    
+	    err += hoge*hoge;
+
+	  }
+	}
+	
+	if( err < min ){
+	  min = err;
+	  disp = d;
+	}
+      }
+
+      IMG_ELEM( dispMap, h, w) = disp * 4.0;
+      
+
+    }
+  }
+  
+  saveImage( dispMap, "img/MBP/110802/dispMap.png" );
+
 
   return 0;
 
