@@ -43,14 +43,20 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
   double sum = 0.0;
   for(h=0;h<psf->height; ++h){
     for(w=0;w<psf->width;++w){
-      int idx = h * img->width + w;
-      filter[idx][0] = (double)IMG_ELEM(psf, psf->height - h, psf->width -w);
-      sum += (double)IMG_ELEM(psf, psf->height - h, psf->width -w);
+      
+      int y = h - psf->height/2;
+      int x = w - psf->width/2;
+      y += (y<0) ? img->height : 0;
+      x += (x<0) ? img->width : 0;
+
+      int idx = y * img->width + x;
+      filter[idx][0] = (double)IMG_ELEM(psf, h, w);
+      sum += (double)IMG_ELEM(psf, h, w);
     }
   }
 
-  for(h=0;h<psf->height; ++h){
-    for(w=0;w<psf->width;++w){
+  for( h = 0 ; h < img->height ; ++h){
+    for( w = 0 ; w < img->width ; ++w){
       int idx = h * img->width + w;
       filter[idx][0] /= sum;
     }
@@ -87,7 +93,7 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
     for(w=0;w<dst->width;++w){
       int idx = h * img->width + w;
       double val = dbl[idx][0] * dbl[idx][0] + dbl[idx][1] * dbl[idx][1];
-      val = sqrt(val) / scale;
+      val = sqrt(val) / (scale * ELEM0( window, h, w));
       IMG_ELEM(dst, h, w) = (uchar)(val);
     }
   }

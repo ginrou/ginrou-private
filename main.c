@@ -6,45 +6,86 @@
 
 int main(int argc, char* argv[])
 {
+  IMG* left = readImage("img/MBP/110803/blurredLeft.png");
+  IMG* right = readImage("img/MBP/110803/blurredRight.png");
+  IMG* apeture = readImage("img/MBP/110803/circle.png");
+  
+  Mat psfLeft[MAX_DISPARITY], psfRight[MAX_DISPARITY];
+  double par[2];
 
-  IplImage* disparityMap = cvLoadImage( "test/disparityMap.png", CV_LOAD_IMAGE_GRAYSCALE);
-  IplImage* cir, *zhou;
+  IMG* leftDbl[MAX_DISPARITY];
+  IMG* rightDbl[MAX_DISPARITY];
 
-  FILE* fp = fopen("test/error.txt", "w" );
-  fprintf( fp, "#var\tcircle \tzhou\n" );
+  // PSF を作る
+  par[0] = 3.579218;
+  par[1] = -26.265516;
+  makeShiftBlurPSF( psfLeft, LEFT_CAM, apeture, par);
 
-  for(int i = 0; i < 10; ++i){
+  par[0] = 1.500331;
+  par[1] = -25.745794;
+  makeShiftBlurPSF( psfRight, RIGHT_CAM, apeture, par);
+
+
+  // deblurを行う
+  IMG* psf;
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+
     char filename[256];
+
+    psf = createImage( psfLeft[d].row, psfLeft[d].clm );
+    convertMat2IMG( &(psfLeft[d]), psf );
+    leftDbl[d] = deblurFFTW( left, psf );
+    sprintf( filename, "img/MBP/110803/test/dbl%02dLeft.png", d);
+    saveImage( leftDbl[d], filename);
+
+    psf = createImage( psfRight[d].row, psfRight[d].clm );
+    convertMat2IMG( &( psfRight[d] ), psf );
+    rightDbl[d] = deblurFFTW( right, psf );
+    sprintf( filename, "img/MBP/110803/test/dbl%02dRight.png", d);
+    saveImage( rightDbl[d], filename);
     
-    sprintf( filename, "test/dispCir%02d.png", i);
-    cir = cvLoadImage( filename, CV_LOAD_IMAGE_GRAYSCALE );
-
-    sprintf( filename, "test/dispZhou%02d.png", i);
-    zhou = cvLoadImage( filename, CV_LOAD_IMAGE_GRAYSCALE );
-
-
-    double errCir = 0.0;
-    double errZhou = 0.0;
-    int count = 0;
-    CvRect rect = cvRect( 117, 206, 260, 117);
-    for(int h = rect.y ; h < rect.y + rect.height; ++h){
-      for( int w = rect.x ; w < rect.x + rect.width ; ++w){
-	errCir += abs( CV_IMAGE_ELEM( cir, uchar, h, w) - CV_IMAGE_ELEM( disparityMap, uchar, h, w)/4.0 );
-	errZhou += abs( CV_IMAGE_ELEM( zhou, uchar, h, w) - CV_IMAGE_ELEM( disparityMap, uchar, h, w)/4.0 );
-	count++;
-      }
-    }
-
-    errCir /= (double)count;
-    errZhou /= (double)count;
-
-    printf("var = %lf, cir = %lf, zhou = %lf\n", (double)i/2.0, errCir, errZhou);
-    fprintf( fp, "%lf\t%lf\t%lf\n", (double)i/2.0, errCir, errZhou);
-
   }
 
-  fclose(fp);
-  
-  return 0;
 
+  // deblur結果から視差を計算
+  IMG* dispMap = createImage( left->height, left->width);
+  for( int h = 0 ;h < dispMap->height; ++h){
+    for( int w = 0; w < dispMap->width; ++w){
+      
+      double min = DBL_MAX;
+      int disp;
+
+      for(int d = 0; d < MAX_DISPARITY; ++d){
+	int blk = 4;
+	double err = 0.0;
+	
+	for(int y = 0; y < blk; ++y){
+	  for(int x = 0;  x < blk; ++x ){
+	    if( h+y >= dispMap->height || w+x >= dispMap->width)
+	      continue;
+
+	    double val =
+	      IMG_ELEM( leftDbl[d], h + y, w + x )
+	      - IMG_ELEM( rightDbl[d], h+y, w+x );
+	      
+	    err += val * val;
+
+	  }
+	}
+
+	if( err < min ){
+	  min = err;
+	  disp = d;
+	}
+
+      }//d 
+
+      IMG_ELEM( dispMap, h, w) = disp * 4.0;
+
+    }//w 
+  }//h
+
+  saveImage( dispMap, "img/MBP/110803/disparityMap.png");
+
+  return 0;
 }

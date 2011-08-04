@@ -163,7 +163,7 @@ int batch110801_2( int argc, char* argv[] ){
 
 int batch110802( int argc, char* argv[] )
 {
-    IMG* left = readImage("img/MBP/110802-01/blurredLeft.png");
+  IMG* left = readImage("img/MBP/110802-01/blurredLeft.png");
   IMG* right = readImage("img/MBP/110802-01/blurredRight.png");  
   IMG* cir = readImage("img/MBP/110802/circle.png");
   Mat psfLeft[MAX_DISPARITY], psfRight[MAX_DISPARITY];
@@ -260,4 +260,62 @@ int batch110802( int argc, char* argv[] )
   }
   
   saveImage( dispMap, "img/MBP/110802-01/dispMap.png" );
+}
+
+int batch_deblurTestCode( int argc, char* argv[])
+{
+    int h, w;
+  IMG* src = readImage("img/test/LENNA.bmp");
+  IMG* apeture = readImage("img/test/circle.png");
+  IMG* blu = createImage( src->height, src->width);
+  IMG* psf = createImage( 8, 8);
+  resizeImage( apeture, psf);
+
+  double norm = 0.0;
+
+
+  //blurring
+  for(h = 0; h < psf->height; ++h){
+    for(w = 0; w < psf->width; ++w){
+      norm += IMG_ELEM( psf, h, w);
+    }
+  }
+  printf("norm of PSF = %lf\n", norm);
+  
+  for(h = 0; h < src->height; ++h){
+    for(w = 0; w < src->width; ++w){
+      double sum = 0.0;
+      for(int y = 0; y < psf->height; ++y){
+	for(int x = 0 ; x < psf->width; ++x){
+	  int py = h + y - psf->height/2;
+	  int px = w + x - psf->width/2;
+	  if( py < 0 || py >= blu->height || px < 0 || px >= blu->width) continue;
+	  sum += IMG_ELEM( src, py, px) * IMG_ELEM( psf, y, x);
+	}
+      }
+      IMG_ELEM( blu, h, w) = sum / norm;
+    }
+  }
+
+  IMG* dbl = deblurFFTW(blu, psf);
+
+  IMG* sve = createImage( 64, 64);
+
+  for( h = 0 ; h < sve->height; ++h){
+    for( w = 0 ; w < sve->width ; ++w){
+      IMG_ELEM( sve, h, w) = IMG_ELEM( blu, (blu->height-sve->height)/2 + h, (blu->width-sve->width)/2 + w);
+    }
+  }
+  saveImage( sve, "img/test/blurred.png");
+
+
+  for( h = 0 ; h < sve->height; ++h){
+    for( w = 0 ; w < sve->width ; ++w){
+      IMG_ELEM( sve, h, w) = IMG_ELEM( dbl, (blu->height-sve->height)/2 + h, (blu->width-sve->width)/2 + w);
+    }
+  }
+  saveImage( sve, "img/test/deblurred.png");
+
+  
+  return 0;
 }
