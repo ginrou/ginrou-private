@@ -72,9 +72,9 @@ void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
     // PSFの中央を決める
     int center;
     if( cam == LEFT_CAM ){
-      center = ( MAX_DISPARITY + sz - disp ) / 2 ;
-    }else if( cam == RIGHT_CAM ){
       center = ( MAX_DISPARITY + sz + disp ) / 2 ;
+    }else if( cam == RIGHT_CAM ){
+      center = ( MAX_DISPARITY + sz - disp ) / 2 ;
     }
 
     // PSFを埋めて行く

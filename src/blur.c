@@ -115,8 +115,8 @@ IMG* blurWithPSFMap( IMG* img, Mat psf[], IMG* psfMap)
 	  int py = h + y - psf[idx].row / 2;
 	  int px = w + x - psf[idx].clm / 2;
 
-	  if( py < 0  || py >= dst->height ||
-	      px < 0  || px >= dst->width){
+	  if( py < 0  || py >= img->height ||
+	      px < 0  || px >= img->width){
 	    continue;
 	  }else{
 	    sum += (double)IMG_ELEM( img, py, px) * ELEM0( psf[idx], y, x);
