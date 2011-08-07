@@ -285,8 +285,6 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 	searchWidth = 2;
       }
 
-      if( h%100 == 0 && w%100 == 0)
-	printf("y = %lf x + %lf prev = %d, sw = %d ",-a/b, -c/b, prevDisparity, searchWidth);
 
 	
       //探索
@@ -317,11 +315,16 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 	}//x
       }//y
 
-      if( h%100 == 0 && w%100 == 0)
-	printf("%3d, %3d -> %d\n",h, w, (int)IMG_ELEM(dst,h,w));
-
     }//w
+
+    _ClearLine();
+    printf("line : %4d / %4d -> %3d %%", h, dst->height, 100 * h / dst->height);
+
   }//h
+
+  _ClearLine();
+  printf("line : %4d / %4d -> %3d %% \n", dst->height, dst->height, 100);
+
 
   matrixFree(pt1);
   matrixFree(pt2);
