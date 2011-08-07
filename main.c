@@ -7,7 +7,7 @@
 int main(int argc, char* argv[])
 {
 
-  //return batch110804( argc, argv);
+  return batch110801( argc, argv);
 
   IMG* center = readImage("img/MBP/110805/center.png");
   IMG* aperture = readImage("img/MBP/aperture/circle.png");

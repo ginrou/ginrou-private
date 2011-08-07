@@ -59,7 +59,7 @@ int batch110801( int argc, char* argv[] )
 
   Mat fund = createHorizontalFundMat();
 
-  IMG* dispMap = stereoRecursive( srcLeft, srcRight, &fund, 20, 0);
+  IMG* dispMap = stereoRecursive( srcRight, srcLeft, &fund, 20, 0);
   saveImage( dispMap, "img/MPro/debug/dispMap.png");
 
   double par[] = {1.528633, -26.839933 };  
