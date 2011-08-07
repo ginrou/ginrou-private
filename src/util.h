@@ -24,5 +24,8 @@ void startClock(void);
 double getPassedTime(void);
 void printPassedTime(void);
 
+// 手前の一行を消す
+#define _ClearLine() { fputs("\r\x1b[2K", stdout); fflush(stdout); }
+
 
 #endif
