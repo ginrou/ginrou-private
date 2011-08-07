@@ -29,7 +29,6 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
 
 
   //window function 二つ目
-  IMG* windowIMG = createImage( window.row, window.clm );
   for( h = 0 ; h < img->height ; ++h){
     for( w = 0 ; w < img->width ; ++w){
       double wh, ww;
@@ -49,17 +48,9 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
 	ww = 1.0;
       
       ELEM0( window, h, w) = wh * ww;
-      IMG_ELEM( windowIMG, h, w) = 255.0*wh*ww;
-
 
     }
   }  
-
-
-  saveImage(windowIMG, "img/MBP/110804/3/window.png");
-
-
-    
 
   //copy src
   for(h=0;h<img->height;++h){
