@@ -417,3 +417,70 @@ int batch_deblurTestCode( int argc, char* argv[])
   
   return 0;
 }
+
+
+int batch110808( int argc, char* argv[] ){ // stereo deblurの実験評価
+
+  setbuf( stdout, NULL); // 改行をまたないように
+
+  char dir[] = "img/MPro/exp/110808/";
+  char srcPath[][256] = {
+    "img/MPro/exp/110808/blurredCircleLeftBig.png",
+    "img/MPro/exp/110808/blurredCircleRightBig.png",
+    "img/MPro/exp/110808/blurredCircleLeftMin.png",
+    "img/MPro/exp/110808/blurredCircleRightMin.png",
+    "img/MPro/exp/110808/blurredZhouLeftBig.png",
+    "img/MPro/exp/110808/blurredZhouRightBig.png",
+    "img/MPro/exp/110808/blurredZhouLeftMin.png",
+    "img/MPro/exp/110808/blurredZhouRightMin.png"
+  };
+
+  char psfPath[][256] = {
+    "img/MPro/exp/110808/circle.png",
+    "img/MPro/exp/110808/Zhou0002.png"
+  };
+
+  double param[2] = { 1.831076, -34.170121};
+  IMG* disparityMap = readImage("img/MPro/exp/110808/disparityMap.png");
+
+  char dstPath[][256] = {
+    "img/MPro/exp/110808/dblCirBigKnown.png", 
+    "img/MPro/exp/110808/dblCirBigUnknown.png", 
+    "img/MPro/exp/110808/dblCirMinKnown.png", 
+    "img/MPro/exp/110808/dblCirMinUnknown.png", 
+    "img/MPro/exp/110808/dblZhouBigKnown.png", 
+    "img/MPro/exp/110808/dblZhouBigUnknown.png", 
+    "img/MPro/exp/110808/dblZhouMinKnown.png", 
+    "img/MPro/exp/110808/dblZhouMinUnknown.png"
+  };
+
+
+  char filename[256];
+  IMG_COL* src[8];
+  for(int i = 0; i < 8; ++i) src[i] = readImageColor( srcPath[i] );
+
+  IMG* psf[2];
+  for(int i = 0; i < 2; ++i) psf[i] = readImage( psfPath[i] );
+
+  // ステレオ法の比較
+  Mat FundMat = createHorizontalFundMat();
+  IMG* disp[4];
+  for(int i = 0; i < 8; i += 2){
+    disp[i/2] = stereoRecursive( src[i], src[i+1], &FundMat, 47, 0);
+    sprintf( filename, "%sdisparityMap%02d.png", dir, i/2);
+    saveImage( disp[i/2], filename);
+  }
+  
+  // deblur
+  for(int i = 0; i < 8; ++i){
+    IMG* src = readImage( srcPath[2*(i/2)] );
+    IMG* psfIn = psf[i/4];
+    IMG* dispMap = ( i%2 == 0)? disparityMap : disp[i/2] ;
+    IMG* dst = deblurFFTWInvariant( src, psfIn, dispMap, param );
+    saveImage( dst, dstPath[i]);
+  }
+
+  return 0;
+  
+
+}
