@@ -6,11 +6,8 @@
 
 int main(int argc, char* argv[])
 {
-<<<<<<< HEAD
 
-=======
   setbuf( stdout, NULL); // 改行をまたないなはず
->>>>>>> be9c2cbd4a7d9424eda03da97574c38de76e2e61
   return batch110801( argc, argv);
 
   IMG* center = readImage("img/MBP/110805/center.png");
