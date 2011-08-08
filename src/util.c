@@ -31,6 +31,12 @@ void showDispMap( const IMG* img)
   cvNamedWindow( dispMapWindow, CV_WINDOW_AUTOSIZE);
   cvSetMouseCallback( dispMapWindow, mouse , (void*)screan);
   
+  double min, max;
+  cvMinMaxLoc( screan, &min, &max, NULL, NULL, NULL);
+  cvConvertScale( screan, screan, 255.0 / ( max- min ), -min*255.0 / ( max-min) );
+
+  printf("max= %lf, min = %lf\n", max, min);
+
   while(1){
     cvShowImage( dispMapWindow, screan);
     int c = cvWaitKey(0);
@@ -47,7 +53,7 @@ void mouse(int event, int x, int y, int flags, void *param)
 {
   if( event == CV_EVENT_LBUTTONDOWN )
     printf("disparity at (h, w) = (%3d, %3d) = %d\n"
-	   , y, x, (int)CV_IMAGE_ELEM( (IplImage*)param, uchar, y, x)/4);
+	   , y, x, (int)CV_IMAGE_ELEM( (IplImage*)param, uchar, y, x));
 }
 
 

@@ -59,12 +59,24 @@ int batch110801( int argc, char* argv[] )
 
   Mat fund = createHorizontalFundMat();
 
-  IMG* dispMap = stereoRecursive( srcRight, srcLeft, &fund, 20, 0);
-  saveImage( dispMap, "img/MPro/debug/dispMap.png");
-
-  double par[] = {1.528633, -26.839933 };  
-
+  IMG* dispMap;
   char filename[256];
+  sprintf(filename, "img/MPro/debug/dispMap.png");
+
+  /*
+  dispMap = stereoRecursive( srcRight, srcLeft, &fund, 20, 0);
+  saveImage( dispMap, "img/MPro/debug/dispMap.png");
+  */
+
+  dispMap = readImage(filename);
+  double par[] = {0.5786, 3.034 };  
+
+  IMG* dst = deblurFFTWInvariant( readImage("img/MPro/debug/DSC_0094.JPG"),
+				  psfBase, dispMap, par );
+
+  saveImage( dst, "img/MPro/debug/deblur.png");
+  return 0;
+
 
   par[0] = 1.0;par[1] = 0.0;
   for(int disp = 0; disp <MAX_DISPARITY; ++disp){
