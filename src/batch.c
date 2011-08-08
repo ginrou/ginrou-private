@@ -440,7 +440,7 @@ int batch110808( int argc, char* argv[] ){ // stereo deblurの実験評価
     "img/MPro/exp/110808/Zhou0002.png"
   };
 
-  double param[2] = { 1.831076, -34.170121};
+  double param[2] = { 1.723563, -15.674991};
   IMG* disparityMap = readImage("img/MPro/exp/110808/disparityMap.png");
   convertScaleImage( disparityMap, disparityMap, 1.0/4.0, 0.0);
 
@@ -468,9 +468,9 @@ int batch110808( int argc, char* argv[] ){ // stereo deblurの実験評価
   IMG* disp[4];
   for(int i = 0; i < 8; i += 2){
     sprintf( filename, "%sdisparityMap%02d.png", dir, i/2);
-    //disp[i/2] = stereoRecursive( src[i], src[i+1], &FundMat, 47, 0);
-    disp[i/2] = readImage(filename);
-    //saveImage( disp[i/2], filename);
+    disp[i/2] = stereoRecursive( src[i], src[i+1], &FundMat, 47, 0);
+    //disp[i/2] = readImage(filename);
+    saveImage( disp[i/2], filename);
   }
   
   // deblur
