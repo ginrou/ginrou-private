@@ -30,7 +30,7 @@ IMG* deblur(const IMG* src, //ぼけ画像
 
 //basePSFをminSizeからmaxSizeまでのサイズで拡大縮小して
 //フーリエ変換してdstへつめて返す
-void createPSF( Complex dst[PSF_SIZE][FFT_SIZE][FFT_SIZE],
+void createPSF( Complex dst[MAX_PSF_SIZE][FFT_SIZE][FFT_SIZE],
 		const IMG* basePsf, int minSize, int maxSize);
 
 //ハミング窓を作って返す

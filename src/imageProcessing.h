@@ -9,5 +9,5 @@ void resizeImage(const  IMG* src, IMG* dst);
 void normalizeMat(Mat src, Mat dst);// compute L1 norm (sum of all elements)
 void convertScaleImage( const IMG* src,  IMG* dst, double scale, double shift);
 void putnoise(const IMG* src, IMG* dst, double mean, double var); // 平均mean, 分散varのホワイトノイズを付加
-
+void flipImage( IMG* img, int horizontal, int vertcial);
 #endif

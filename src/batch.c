@@ -362,7 +362,7 @@ int batch110804( int argc, char* argv[] ){
 
 int batch_deblurTestCode( int argc, char* argv[])
 {
-    int h, w;
+  int h, w;
   IMG* src = readImage("img/test/LENNA.bmp");
   IMG* apeture = readImage("img/test/circle.png");
   IMG* blu = createImage( src->height, src->width);
@@ -484,5 +484,111 @@ int batch110808( int argc, char* argv[] ){ // stereo deblurの実験評価
 
   return 0;
   
+
+}
+
+
+int batch110809( int argc, char* argv[] )
+{
+  IMG* left = readImage("img/MBP/110809/blurredLeft.png");
+  IMG* right = readImage("img/MBP/110809/blurredRight.png");
+  IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
+  Mat psfLeft[MAX_DISPARITY];
+  Mat psfRight[MAX_DISPARITY];
+  
+  double par[2];
+
+  IMG* psfImg;
+  char filename[256];
+
+
+  par[0] = 1.253558;
+  par[1] = -9.43181;
+  makeShiftBlurPSF( psfLeft, LEFT_CAM, aperture, par);
+
+  par[0] = 1.253558;
+  par[1] = -7.050460;
+  makeShiftBlurPSF( psfRight, RIGHT_CAM, aperture, par);
+
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+    psfImg = createImage( psfLeft[d].row, psfLeft[d].clm);
+    convertMat2IMG( &(psfLeft[d]), psfImg);
+
+    sprintf(filename, "img/MBP/psf/left%02d.png", d);
+    saveImage( psfImg, filename);
+
+    psfImg = createImage( psfRight[d].row, psfRight[d].clm);    
+    convertMat2IMG( &(psfRight[d]), psfImg);
+
+    sprintf(filename, "img/MBP/psf/right%02d.png", d);
+    saveImage( psfImg, filename);
+    
+
+  }
+
+  return 0;
+
+
+  IMG* dblLeft[MAX_DISPARITY];
+  IMG* dblRight[MAX_DISPARITY];
+
+
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+     psfImg = createImage( psfLeft[d].row, psfLeft[d].clm);
+    convertMat2IMG( &(psfLeft[d]), psfImg);
+    dblLeft[d] = deblurFFTW( left, psfImg );
+
+    psfImg = createImage( psfRight[d].row, psfRight[d].clm);    
+    convertMat2IMG( &(psfRight[d]), psfImg);
+    dblRight[d] = deblurFFTW( right, psfImg );
+    
+    sprintf( filename, "img/MBP/110809/%02ddblLeft.png", d);
+    saveImage( dblLeft[d], filename);
+    sprintf( filename, "img/MBP/110809/%02ddblRight.png", d);
+    saveImage( dblRight[d], filename);
+  }
+
+
+  IMG* dst = createImage( left->height, left->width);
+  for(int h = 0; h < dst->height; ++h){
+    for(int w = 0; w < dst->width; ++w){
+
+      int disp ;
+      double min = DBL_MAX;
+      
+      for(int d = 0; d < MAX_DISPARITY; ++d){
+	int blk = 4;
+	double val = 0;
+	for(int y = 0 ; y < blk; ++y){
+	  for( int x = 0; x < blk; ++x){
+	    
+	    if( h+y < 0 || h+y >= dblLeft[d]->height ||
+		w+x < 0 || w+x >= dblLeft[d]->width){
+	      continue;
+	    }
+	    
+	    double a;
+	    a = IMG_ELEM(dblLeft[d], h+y, w+x) - IMG_ELEM(dblRight[d], h+y, w+x);
+	    val += a*a;
+
+	  }
+	}
+
+	if( val < min ){
+	  min = val;
+	  disp = d;
+	}
+      }//d 
+
+      IMG_ELEM( dst, h,w ) = disp;
+
+    }
+  }
+
+  saveImage(dst, "img/MBP/110809/depthMap.png");
+
+
+  return 0;
+
 
 }

@@ -66,6 +66,7 @@ void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
 
     IMG* img = createImage( sz, sz );
     resizeImage( aperture, img);
+    if(size < 0) flipImage( img, 1, 1);
 
     psf[disp] = matrixAlloc( sz, MAX_DISPARITY + sz );
 

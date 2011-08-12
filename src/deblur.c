@@ -39,8 +39,8 @@ IMG* deblur(const IMG* src,
 
   
   //psf
-  Complex psf[PSF_SIZE][CUT_OFF_SIZE][CUT_OFF_SIZE];
-  createPSF(psf, psfBase, 1, PSF_SIZE-1);
+  Complex psf[MAX_PSF_SIZE][CUT_OFF_SIZE][CUT_OFF_SIZE];
+  createPSF(psf, psfBase, 1, MAX_PSF_SIZE-1);
 
   //窓関数
   Mat window = createWindowFunction();
@@ -155,7 +155,7 @@ IMG* deblur(const IMG* src,
 
 //sizeがある程度より小さいときとか
 //0スタートじゃないと使いづらいかも
-void createPSF( Complex dst[PSF_SIZE][FFT_SIZE][FFT_SIZE],
+void createPSF( Complex dst[MAX_PSF_SIZE][FFT_SIZE][FFT_SIZE],
 		const IMG* basePsf, int minSize, int maxSize)
 {
   double psf[FFT_SIZE][FFT_SIZE];
