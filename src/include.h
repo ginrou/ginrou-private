@@ -11,7 +11,7 @@
 #define RIGHT_CAM 2
 
 #define MAX_DISPARITY 32
-#define MAX_PSF_SIZE 64
+#define MAX_PSF_SIZE 32
 #define FFT_SIZE 64
 #define CUT_OFF_SIZE FFT_SIZE //切り取る大きさはFFTのと同じにしなければならない
 #define BLOCK_SIZE 16 //2^nのほうが都合が良い
@@ -29,6 +29,6 @@
 #include "deblur2.h"
 #include "batch.h"
 #include "psf.h"
-
+#include "expsystem.h"
 
 #endif 

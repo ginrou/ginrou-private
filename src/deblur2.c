@@ -75,9 +75,12 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
 
       int idx = y * img->width + x;
       filter[idx][0] = (double)IMG_ELEM(psf, h, w);
+
+      // 正規化用
       sum += (double)IMG_ELEM(psf, h, w);
     }
   }
+
 
   for( h = 0 ; h < img->height ; ++h){
     for( w = 0 ; w < img->width ; ++w){

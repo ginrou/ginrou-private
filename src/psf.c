@@ -21,37 +21,22 @@ void makeShiftPSF(Mat psf[MAX_DISPARITY], int cam){
   return;
 }
 
-void makeBlurPSF( Mat src[MAX_DISPARITY], 
-		  Mat dst[MAX_DISPARITY], 
-		  IMG* aperture, double par[2]) // parはDisp To PSF Sizeparam
+void makeBlurPSF( IMG* psf[MAX_DISPARITY], 
+		  IMG* aperture,
+		  int maxDepth,
+		  double param[2])
 {
-  for(int disp = 0; disp < MAX_DISPARITY; ++disp){
+
+  for( int i = 0; i < maxDepth; ++i){
+    int size = (double)i * param[0] + param[1];
+    if( size == 0 ) size = 1;
+
+    psf[i] = createImage( abs(size), abs(size) );
+    resizeImage( aperture, psf[i]);
+    if( size < 0 ) flipImage( psf[i], 1, 1);
     
-    double size = (double)disp * par[0] + par[1];
-    if(fabs(size) < 1.0 ) size = 1.0;
-    dst[disp] = matrixAlloc( abs(size) , abs(size) + src[disp].clm );
-    
-    IMG* psf = createImage( abs(size), abs(size) );
-    resizeImage( aperture, psf );
-
-    matrixZero(dst[disp]);
-
-    for(int h = 0; h < src[disp].row; ++h){
-      for(int w = 0; w < src[disp].clm; ++w){
-	
-	for(int y = 0 ; y < abs(size); ++y ){
-	  for(int x = 0; x < abs(size); ++x ){
-	    ELEM0( dst[disp] , h+y, w+x ) +=
-	      ELEM0( src[disp], h, w ) * (double)IMG_ELEM( psf, y, x);
-	  }
-	}
-
-      }
-    }
-    
-    releaseImage(&psf);
-
   }
+
   return;
 }
 
@@ -66,26 +51,23 @@ void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
 
     IMG* img = createImage( sz, sz );
     resizeImage( aperture, img);
-    if(size < 0) flipImage( img, 1, 1);
+    if(size > 0) flipImage( img, 1, 1);
 
     psf[disp] = matrixAlloc( sz, MAX_DISPARITY + sz );
 
     // PSFの中央を決める
     int center;
     if( cam == LEFT_CAM ){
-      center = ( MAX_DISPARITY + sz + disp ) / 2 ;
-    }else if( cam == RIGHT_CAM ){
       center = ( MAX_DISPARITY + sz - disp ) / 2 ;
+    }else if( cam == RIGHT_CAM ){
+      center = ( MAX_DISPARITY + sz + disp ) / 2 ;
     }
 
     // PSFを埋めて行く
     matrixZero( psf[disp] );
     for(int y = 0; y < sz ; ++y){
       for( int x = 0; x < sz ; ++x){
-	int p;
-	if( size < 0 ) p = center - x + sz/2;
-	else p = center + x - sz/2; 
-
+	int p = center - x + sz/2;
 	if( p < 0 || p >= psf[disp].clm ) continue;
 
 	ELEM0( psf[disp], y, p) = IMG_ELEM( img, y, x);

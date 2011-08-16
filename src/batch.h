@@ -10,6 +10,9 @@ int batch110802( int argc, char* argv[] );
 int batch110804( int argc, char* argv[] ); // delburベースの奥行き推定
 int batch110808( int argc, char* argv[] ); // stereo deblurの実験評価
 int batch110809( int argc, char* argv[] ); // stereo deblurの実験評価
+int batch110814( int argc, char* argv[] ); // 修論用システム完成!
+int batch110815( int argc, char* argv[] ); // 修論用システムの実験
+
 
 int batch_deblurTestCode( int argc, char* argv[]);
 

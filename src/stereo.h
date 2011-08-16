@@ -11,7 +11,7 @@
 #include <util.h>
 
 
-#define MATCHING_BLOCK_SIZE   (2 * maxDisparity)
+#define MATCHING_BLOCK_SIZE  4 //(2 * maxDisparity)
 
 typedef struct point{
   int x;

@@ -510,24 +510,6 @@ int batch110809( int argc, char* argv[] )
   par[1] = -7.050460;
   makeShiftBlurPSF( psfRight, RIGHT_CAM, aperture, par);
 
-  for( int d = 0; d < MAX_DISPARITY; ++d){
-    psfImg = createImage( psfLeft[d].row, psfLeft[d].clm);
-    convertMat2IMG( &(psfLeft[d]), psfImg);
-
-    sprintf(filename, "img/MBP/psf/left%02d.png", d);
-    saveImage( psfImg, filename);
-
-    psfImg = createImage( psfRight[d].row, psfRight[d].clm);    
-    convertMat2IMG( &(psfRight[d]), psfImg);
-
-    sprintf(filename, "img/MBP/psf/right%02d.png", d);
-    saveImage( psfImg, filename);
-    
-
-  }
-
-  return 0;
-
 
   IMG* dblLeft[MAX_DISPARITY];
   IMG* dblRight[MAX_DISPARITY];
@@ -589,6 +571,149 @@ int batch110809( int argc, char* argv[] )
 
 
   return 0;
+
+
+}
+
+int batch110814( int argc, char* argv[] )
+{
+  
+  IMG* left = readImage("img/MBP/110814-3/blurredLeft.png");
+  IMG* right = readImage("img/MBP/110814-3/blurredRight.png");
+  IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
+  char filename[256];
+  
+  Mat psfLeft[MAX_DISPARITY], psfRight[MAX_DISPARITY];
+  double par[2];
+  par[0] = 1.209449;
+  par[1] = -9.166775;
+  makeShiftBlurPSF( psfLeft, LEFT_CAM, aperture, par);
+
+  par[1] = -7.144526;
+  makeShiftBlurPSF( psfRight, RIGHT_CAM, aperture, par);
+  
+  IMG* dblLeft[MAX_DISPARITY];
+  IMG* dblRight[MAX_DISPARITY];
+  IMG* psfImg;
+  for(int d = 0; d < MAX_DISPARITY; ++d){
+    psfImg = createImage( psfLeft[d].row, psfLeft[d].clm);
+    convertMat2IMG( &(psfLeft[d]), psfImg);
+    dblLeft[d] = deblurFFTW( left, psfImg);
+
+    psfImg = createImage( psfRight[d].row, psfRight[d].clm);
+    convertMat2IMG( &(psfRight[d]), psfImg);
+    dblRight[d] = deblurFFTW( right, psfImg);
+
+    sprintf( filename, "img/MBP/110814-3/test/dbl%02dLeft.png", d);
+    saveImage( dblLeft[d], filename);
+    sprintf( filename, "img/MBP/110814-3/test/dbl%02dRight.png", d);
+    saveImage( dblRight[d], filename);
+
+  }
+
+
+  IMG* dst = createImage( left->height, left->width);
+  for(int h = 0 ; h < dst->height; ++h){
+    for( int w = 0; w < dst->width; ++w){
+      
+      int disp;
+      double min = DBL_MAX;
+      
+      for( int d = 0; d < MAX_DISPARITY; ++d){
+	int blk = 6;
+	double sum = 0;
+
+	for(int y = 0; y < blk; ++y){
+	  for(int x = 0 ; x < blk; ++x){
+	    
+	    if( h+y < 0 || h+y >= dst->height ||
+		w+x < 0 || w+x >= dst->width ) continue;
+	    
+	    double a;
+	    a = IMG_ELEM( dblLeft[d], h+y, w+x) - IMG_ELEM( dblRight[d], h+y, w+x);
+	    sum += a*a;
+	    
+	  }
+	}
+
+	if( sum < min ){
+	  min = sum;
+	  disp = d;
+	}
+
+      }
+
+      IMG_ELEM( dst, h, w) = disp;
+
+    }
+  }
+    
+    convertScaleImage( dst, dst, 4.0, 0.0);
+    saveImage( dst, "img/MBP/110814-3/dst.png");
+
+    return 0;
+
+
+}
+
+
+int batch110815( int argc, char* argv[] )
+{
+    char filename[256];
+  IMG* left[4];
+  IMG* right[4];
+  IMG* dst[4];
+
+  for(int i = 0; i < 4; ++i){
+    sprintf( filename, "img/MBP/110815-1/blurredLeft%d.png", i+1);
+    left[i] = readImage( filename );
+    sprintf( filename, "img/MBP/110815-1/blurredRight%d.png", i+1);
+    right[i] = readImage( filename );
+  }
+
+  IMG* ca1  = readImage("img/MBP/aperture/CAPair1.png");
+  IMG* ca2  = readImage("img/MBP/aperture/CAPair2.png");
+  IMG* zhou = readImage("img/MBP/aperture/Zhou0002.png");
+  IMG* cir  = readImage("img/MBP/aperture/circle.png");
+
+  double par[2][2];
+  int blk = 4;
+
+  // 自分のシステム
+  par[0][0] = 1.777778;
+  par[0][1] = -18.673244;
+  par[1][0] = 1.777778;
+  par[1][1] = -15.371831;
+  printf("start current system\n");
+
+  dst[0] = currentSystemDispmap( left[0], right[0],
+				 zhou, zhou,
+				 par, 30, blk);
+  saveImage( dst[0], "img/MBP/110815-1/dispmap1.png");
+
+  // Coded Aperture Pair
+  printf("coded aperture pair\n");
+  par[0][0] = 1.0;
+  par[0][1] = 0.0;
+  dst[1] = CodedAperturePairDispmap( left[1], right[1],
+				     ca1, ca2, par[0], 
+				     30, blk);
+  saveImage( dst[1], "img/MBP/110815-1/dispmap2.png");
+
+  // ステレオ法
+  IMG_COL *leftCol = readImageColor("img/MBP/110815-1/blurredLeft3.png");
+  IMG_COL *rightCol = readImageColor("img/MBP/110815-1/blurredRight3.png");
+  Mat fund = createHorizontalFundMat();
+  dst[2] = stereoRecursive( leftCol, rightCol, &fund, 30, 0);
+  saveImage( dst[2], "img/MBP/110815-1/dispmap3.png");
+
+  // Depth from defocus
+  par[0][0] = 1.777778;
+  par[0][1] = -18.673244;
+  par[1][0] = 1.777778;
+  par[1][1] = -15.371831;
+  dst[3] = DepthFromDeocus( left[3], right[3], cir, par, blk);
+  saveImage( dst[3], "img/MBP/110815-1/dispmap4.png");
 
 
 }

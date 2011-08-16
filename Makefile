@@ -8,7 +8,7 @@ LIB_DIR = lib
 
 MAINFILE = main.c
 TARGET = ${MAINFILE:.c=.out}
-SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c 	blur.c deblur2.c batch.c psf.c
+SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c 	blur.c deblur2.c batch.c psf.c expsystem.c
 OBJS := ${SRCS:.c=.o}
 OBJS := ${addprefix ${OBJ_DIR}/, ${OBJS}}
 INCLUDE_HEADER = ${INCLUDE_DIR}/include.h
