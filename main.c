@@ -8,6 +8,8 @@ int main(int argc, char* argv[])
 {
   setbuf( stdout, NULL); // 改行をまたないように
 
+  return batch110815( argc, argv);
+
   char filename[256];
   IMG* left[4];
   IMG* right[4];
@@ -27,7 +29,7 @@ int main(int argc, char* argv[])
 
   double par[2][2];
   int blk = 4;
-
+  /*
   // 自分のシステム
   par[0][0] = 1.209449;
   par[0][1] = -8.324842;
@@ -39,6 +41,7 @@ int main(int argc, char* argv[])
 				 zhou, zhou,
 				 par, 30, blk);
   saveImage( dst[0], "img/MBP/110816-1/dispmap1.png");
+  */
 
   // Coded Aperture Pair
   printf("coded aperture pair\n");
@@ -48,6 +51,8 @@ int main(int argc, char* argv[])
 				     ca1, ca2, par[0], 
 				     30, blk);
   saveImage( dst[1], "img/MBP/110816-1/dispmap2.png");
+
+  return 0;
 
   // ステレオ法
   IMG_COL *leftCol = readImageColor("img/MBP/110816-1/blurredLeft3.png");

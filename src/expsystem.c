@@ -107,13 +107,15 @@ IMG* CodedAperturePairDispmap
   IMG* dblRight[MAX_PSF_SIZE];
 
   for( int d = 0; d < MAX_PSF_SIZE; ++d){
+    flipImage( psfLeft[d], 1, 1);
+    flipImage( psfRight[d], 1, 1);
     dblLeft[d] = deblurFFTW( srcLeft, psfLeft[d] );
     dblRight[d] = deblurFFTW( srcRight, psfRight[d] );
     char filename[256];
-    sprintf(filename, "img/MBP/110815-1/test/psfLeft%02d.png", d);
-    saveImage( psfLeft[d], filename);
-    sprintf(filename, "img/MBP/110815-1/test/psfRight%02d.png", d);
-    saveImage( psfRight[d], filename);
+    sprintf(filename, "img/MBP/110815-1/test/dblLeft%02d.png", d);
+    saveImage( dblLeft[d], filename);
+    sprintf(filename, "img/MBP/110815-1/test/dblRight%02d.png", d);
+    saveImage( dblRight[d], filename);
   }
 
   printf("deblurring done\n");
