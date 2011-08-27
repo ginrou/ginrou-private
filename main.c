@@ -9,16 +9,16 @@ int main(int argc, char* argv[])
   setbuf( stdout, NULL); // 改行をまたないように
   int h, w;
 
-  IMG* img      = readImage("img/MBP/110827-1/blurredLeft4.png");
+  IMG* img      = readImage("img/MBP/110827-1/blurredLeft5.png");
   IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
-  IMG* dispMap  = readImage("img/MBP/110827-1/disparityMap4.png");
+  IMG* dispMap  = readImage("img/MBP/110827-1/disparityMap5.png");
   size_t memSize = sizeof(fftw_complex) * img->height * img->width ;
   fftw_complex *src = (fftw_complex*)fftw_malloc(memSize);
   fftw_complex *dbl = (fftw_complex*)fftw_malloc(memSize);
-  double param[2] = { 2.653007, -20.628481};
 
-  showDispMap(dispMap);
-  return 0;
+  //showDispMap(dispMap);
+  //return 0;
+
   //copy src
   for( h = 0; h < img->height ; ++h ){
     for( w = 0; w < img->width; ++w){
@@ -29,9 +29,9 @@ int main(int argc, char* argv[])
   }
 
   //copy psf
-  int kernels = 45;
-  fftw_complex *psf[45];
-  flipImage( aperture, 1, 1);
+  int kernels = 50;
+  fftw_complex *psf[50];
+  flipImage( aperture, 0, 1); //0,1
   for( int i = 1; i < kernels; ++i ){
 
     IMG* apIn = createImage( i, i );
@@ -72,15 +72,24 @@ int main(int argc, char* argv[])
 
 
   //deblur
-  double depth = 110.0 / 32.0 ;
-  for(int i = 0; i < 100; ++i ){
-    depth = ( 80.0 + 1.0 * (double)i ) / 32.0;
-    double disp = 512.0*0.025349 / ( 2.0 * depth * tan( 35.952969*M_PI/360.0 ));
-    double size = fabs( disp * param[0] + param[1] );
-    size = (double)i / 3.0;
+  IMG *dblImg[MAX_DISPARITY];
+  fftw_plan pDbl = fftw_plan_dft_2d( img->height, img->width, dbl, dbl, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+  double param1[2] = { -1.2857, 13.3661};
+  double param2[2] = { -1.6413, 17.838};
+  double param51[2] = { -5.6075/4.0, 43.1935};
+  double param52[2] = { 3.621871 / 4.0, -28.161897 };
+  double paramCalib[2] = { 0.1, 3.0};
+  double *param = param52;
+
+  for(int disp = 0; disp < MAX_DISPARITY; ++disp){
+    double size = fabs( (double)disp * param[0] + param[1] );
     double r = size - (int)size;
+
     if( size < 1.0 ) {size = 1.0; r = 0.0 ;}
-    printf("depth = %lf dispartiy = %lf, size = %lf  r = %lf\n",depth, disp, size, r);
+    printf("dispartiy = %d, size = %lf  r = %lf\n", disp, size, r);
+
+    if( size > 50 )continue;
 
     for(h = 0; h < img->height; ++h){
       for(w = 0 ; w < img->width; ++w){
@@ -97,22 +106,35 @@ int main(int argc, char* argv[])
     }
 
     //IDFT
-    fftw_plan pDbl = fftw_plan_dft_2d( img->height, img->width, dbl, dbl, FFTW_BACKWARD, FFTW_ESTIMATE);
     fftw_execute( pDbl );
-    
-    IMG* dst = createImage( img->height, img->width );
+
+    dblImg[disp] = createImage( img->height, img->width );
     double scale = img->height * img->width;
-    for( h = 0; h < dst->height; ++h){
-      for( w = 0; w < dst->width; ++w){
+    for( h = 0; h < dblImg[disp]->height; ++h){
+      for( w = 0; w < dblImg[disp]->width; ++w){
 	int idx = h * img->width + w;
 	double val = dbl[idx][0] * dbl[idx][0] + dbl[idx][1] * dbl[idx][1];
-	IMG_ELEM( dst, h, w) = sqrt(val) / scale;
+	IMG_ELEM( dblImg[disp], h, w) = sqrt(val) / scale;
       }
     }
-    char filename[256];
-    sprintf( filename, "img/MBP/110827-1/test/%02d.png", i);
-    saveImage( dst, filename);
+
+    if( param == paramCalib){
+      char filename[256];
+      sprintf( filename, "img/MBP/110827-1/test/%02d.png", disp);
+      saveImage( dblImg[disp], filename );
+    }
   }
+
+  IMG* dst = createImage( img->height, img->width );
+  for( h = 0; h < dst->height; ++h){
+    for( w = 0; w < dst->width; ++w){
+      int disp = IMG_ELEM( dispMap, h, w);
+      IMG_ELEM( dst, h, w) = IMG_ELEM( dblImg[disp], h, w);
+    }
+  }
+
+  saveImage( dst, "img/MBP/110827-1/deblurredImage.png");
+
   return 0;
 
 }

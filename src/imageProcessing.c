@@ -130,7 +130,7 @@ void flipImage( IMG* img, int horizontal, int vertcial)
   int flip = 0;
   if( horizontal && vertcial ) flip = -1;
   else if( vertcial ) flip = 1;
-  else flip = 1;
+  else flip = 0;
   
   cvFlip(ipl, ipl, flip);
   
