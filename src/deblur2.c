@@ -3,55 +3,15 @@
 
 IMG* deblurFFTW( IMG* img, IMG* psf)
 {
-  
-  double snr = 0.005;
-
-  fftw_complex *src = NULL;
-  fftw_complex *filter = NULL;
-  fftw_complex *dbl = NULL;
+  int h, w;  
+  double snr = 0.002;
   size_t memSize = sizeof(fftw_complex)*(img->height * img->width);
-  
-  src = (fftw_complex*)fftw_malloc( memSize );
-  filter = (fftw_complex*)fftw_malloc( memSize );
-  dbl = (fftw_complex*)fftw_malloc( memSize );
-
-  int h, w;
+  fftw_complex *src = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *filter = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc( memSize );
 
   //window function
-  Mat window = matrixAlloc( img->height, img->width);
-  for(h=0;h<img->height;++h){
-    for(w=0;w<img->width;++w){
-      double wh = 0.5 - 0.5*cos( (double)h * M_PI * 2.0 / (double)img->height);
-      double ww = 0.5 - 0.5*cos( (double)w * M_PI * 2.0 / (double)img->width);
-      ELEM0( window, h, w) = wh * ww;
-    }
-  }
-
-
-  //window function 二つ目
-  for( h = 0 ; h < img->height ; ++h){
-    for( w = 0 ; w < img->width ; ++w){
-      double wh, ww;
-
-      if( h < psf->height/2 ) 
-	wh = 0.5 - 0.5*cos( (double)h * M_PI * 2.0 / (double)psf->height);
-      else if( h >= img->height - psf->height/2)
-	wh = 0.5 - 0.5*cos( (double)(h-img->height+psf->height) * M_PI * 2.0 / (double)psf->height);
-      else 
-	wh = 1.0;
-
-      if( w < psf->width/2 ) 
-	ww = 0.5 - 0.5*cos( (double)w * M_PI * 2.0 / (double)psf->width);
-      else if( w >= img->width - psf->width/2)
-	ww = 0.5 - 0.5*cos( (double)(w-img->width + psf->width) * M_PI * 2.0 / (double)psf->width);
-      else 
-	ww = 1.0;
-      
-      ELEM0( window, h, w) = wh * ww;
-
-    }
-  }  
-
+  Mat window = hummingWindow( img->height, img->width, psf->height, psf->width);
   //copy src
   for(h=0;h<img->height;++h){
     for(w=0;w<img->width;++w){
@@ -64,7 +24,7 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
   }
   
   //copy psf
-  double sum = 0.0;
+  double norm = imageNormL1(psf);
   for(h=0;h<psf->height; ++h){
     for(w=0;w<psf->width;++w){
       
@@ -74,18 +34,8 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
       x += (x<0) ? img->width : 0;
 
       int idx = y * img->width + x;
-      filter[idx][0] = (double)IMG_ELEM(psf, h, w);
+      filter[idx][0] = (double)IMG_ELEM(psf, h, w) / norm;
 
-      // 正規化用
-      sum += (double)IMG_ELEM(psf, h, w);
-    }
-  }
-
-
-  for( h = 0 ; h < img->height ; ++h){
-    for( w = 0 ; w < img->width ; ++w){
-      int idx = h * img->width + w;
-      filter[idx][0] /= sum;
     }
   }
 
@@ -120,10 +70,16 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
     for(w=0;w<dst->width;++w){
       int idx = h * img->width + w;
       double val = dbl[idx][0] * dbl[idx][0] + dbl[idx][1] * dbl[idx][1];
-      val = sqrt(val) / (scale * ELEM0( window, h, w));
-      IMG_ELEM(dst, h, w) = (uchar)(val);
+      IMG_ELEM(dst, h, w) = sqrt(val) / scale ;
     }
   }
+
+  //clean
+  fftw_free(src);
+  fftw_free(filter);
+  fftw_free(dbl);
+  matrixFree(window);
+
 
   return dst;
 
@@ -438,4 +394,30 @@ IMG* deblurFFTWResize( IMG* img, IMG* psf, double size)
 
   return dst;
 
+}
+
+Mat hummingWindow( int imgHeight, int imgWidth, int psfHeight, int psfWidth)
+{
+  Mat win = matrixAlloc( imgWidth, imgHeight);
+  for(int h = 0; h < win.row; ++h){
+    for(int w = 0; w < win.clm; ++w){
+      double wh, ww;
+      if( h < psfHeight )
+	wh = 0.5 - 0.5 * cos( (double)h*M_PI / (double)psfHeight );
+      else if( h >= imgHeight - psfHeight )
+	wh = 0.5 - 0.5 * cos( (double)(h-imgHeight)*M_PI / (double)psfHeight);
+      else
+	wh = 1.0;
+
+      if( w < psfWidth )
+	ww = 0.5 - 0.5 * cos( (double)w*M_PI / (double)psfWidth );
+      else if( w >= imgWidth - psfWidth )
+	ww = 0.5 - 0.5 * cos( (double)(w-imgWidth)*M_PI / (double)psfWidth);
+      else
+	ww = 1.0;
+
+      ELEM0( win, h, w) = ww * wh;
+    }
+  }
+  return win;
 }

@@ -51,6 +51,16 @@ void resizeImage(const  IMG* src, IMG* dst)
 
 }
 
+double imageNormL1(const IMG* img)
+{
+  double ret = 0.0;
+  for(int h = 0; h < img->height; ++h){
+    for( int w = 0; w < img->width; ++w){
+      ret += IMG_ELEM( img, h, w);
+    }
+  }
+  return ret;
+}
 
 void normalizeMat(Mat src, Mat dst)
 {

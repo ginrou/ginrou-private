@@ -19,6 +19,19 @@ IMG* currentSystemDispmap
   );
 
 
+// depth推定で、CAPairと同じ手法を採用した
+IMG* currentSystemDispmap2
+( IMG* srcLeft, 
+  IMG* srcRight,
+  IMG* apertureLeft,
+  IMG* apertureRight,
+  double param[2][2],
+  int maxDisparity,
+  int blockSize
+  );
+
+
+
 // Coded aperture pair for DFD
 // paramは奥行きとPSF径に関するパラメータ
 // psfSize = param[0] * depth + param[1]になるように
@@ -31,6 +44,17 @@ IMG* CodedAperturePairDispmap
   int maxDepth,
   int blockSize
   );
+
+IMG* CodedAperturePairDispmap2
+( IMG* srcLeft,
+  IMG* srcRight,
+  IMG* apertureLeft,
+  IMG* apertureRight,
+  double param[2],
+  int maxDepth,
+  int blockSize
+  );
+
 
 // ピント位置を変更したDFD
 // paramは奥行きとPSF径に関するパラメータ
