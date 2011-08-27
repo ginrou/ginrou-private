@@ -14,6 +14,7 @@ int batch110814( int argc, char* argv[] ); // 修論用システム完成!
 int batch110815( int argc, char* argv[] ); // 修論用システムの実験
 int batch110816( int argc, char* argv[] ); // 修論用システムの実験2 CAPairを改良
 
+int batch110827( int argc, char* argv[] ); // 周波数領域におけるカーネルの線形補間を用いる事で中途半端なサイズのカーネルでもdeblurできるようになった
 
 int batch_deblurTestCode( int argc, char* argv[]);
 

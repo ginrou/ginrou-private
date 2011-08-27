@@ -27,9 +27,11 @@ void mouse(int event, int x, int y, int flags, void *param);
 void showDispMap( const IMG* img)
 {
   IplImage *screan = cvCreateImage( cvSize(img->width, img->height), IPL_DEPTH_8U, 1);
+
   convertIMG2Ipl( img, screan);
+  IplImage *imgIn = cvCloneImage(screan);
   cvNamedWindow( dispMapWindow, CV_WINDOW_AUTOSIZE);
-  cvSetMouseCallback( dispMapWindow, mouse , (void*)screan);
+  cvSetMouseCallback( dispMapWindow, mouse , (void*)imgIn);
   
   double min, max;
   cvMinMaxLoc( screan, &min, &max, NULL, NULL, NULL);

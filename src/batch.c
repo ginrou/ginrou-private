@@ -785,3 +785,118 @@ int batch110816( int argc, char* argv[] ){
   return 0;
 
 }
+
+/*
+  周波数領域におけるカーネルの線形補間を用いる事で
+  中途半端なサイズのカーネルでもdeblurできるようになった
+*/
+int batch110827( int argc, char* argv[] )
+{
+  IMG* img = readImage("img/MBP/110826-1/blurredwin.png");
+  IMG* apertureIn = readImage("img/MBP/aperture/Zhou0002.png");
+  size_t memSize = sizeof(fftw_complex) * img->height * img->width ;
+  fftw_complex *src = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *psf = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc(memSize);
+  int h, w;
+
+  //copy src
+  for( h = 0; h < img->height ; ++h ){
+    for( w = 0; w < img->width; ++w){
+      int idx = h * img->height + w;
+      src[idx][0] = (double)IMG_ELEM( img, h, w);
+      src[idx][1] = 0.0;
+      psf[idx][0] = 0.0;
+      psf[idx][1] = 0.0;
+    }
+  }
+
+
+  //copy psf
+  IMG* aperture1 = createImage( 15, 15);
+  IMG* aperture2 = createImage( 18, 18);
+  flipImage( apertureIn, 1, 1);
+  resizeImage( apertureIn, aperture1);
+  resizeImage( apertureIn, aperture2);
+  fftw_complex *psf1 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *psf2 = (fftw_complex*)fftw_malloc(memSize);
+  
+  for(int i = 0; i < img->height * img->width; ++i){
+    psf1[i][0] = 0.0;
+    psf1[i][1] = 0.0;
+    psf2[i][0] = 0.0;
+    psf2[i][1] = 0.0;
+  }
+
+  // psf1
+  double norm1 = imageNormL1(aperture1);
+  for(h = 0; h < aperture1->height; ++h){
+    for(w = 0 ; w < aperture1->width; ++w){
+      int y = h - aperture1->height/2;
+      int x = w - aperture1->width/2;
+      y += (y<0) ? img->height : 0;
+      x += (x<0) ? img->width : 0;
+      int idx = y * img->width + x;
+      psf1[idx][0] = DBL_ELEM( aperture1, h, w) / norm1;
+    }
+  }
+
+  // psf2
+  double norm2 = imageNormL1(aperture2);
+  for(h = 0; h < aperture2->height; ++h){
+    for(w = 0 ; w < aperture2->width; ++w){
+      int y = h - aperture2->height/2;
+      int x = w - aperture2->width/2;
+      y += (y<0) ? img->height : 0;
+      x += (x<0) ? img->width : 0;
+      int idx = y * img->width + x;
+      psf2[idx][0] = DBL_ELEM( aperture2, h, w) / norm2;
+    }
+  }  
+  
+  // makeplan and FFT
+  fftw_plan pSrc = fftw_plan_dft_2d( img->height, img->width, src, src, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute(pSrc);
+
+  fftw_plan pPsf1 = fftw_plan_dft_2d( img->height, img->width, psf1, psf1, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan pPsf2 = fftw_plan_dft_2d( img->height, img->width, psf2, psf2, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute( pPsf1 );
+  fftw_execute( pPsf2 );
+
+
+  //deblur
+
+  for(h = 0; h < img->height; ++h){
+    for(w = 0 ; w < img->width; ++w){
+      int idx = h * img->width + w;
+      double a = src[idx][0] ;
+      double b = src[idx][1] ;
+      double c = ( 2.0 * psf1[idx][0] + 1.0 * psf2[idx][0] ) / 3.0;
+      double d = ( 2.0 * psf1[idx][1] + 1.0 * psf2[idx][1] ) / 3.0;
+      double snr = 0.002;
+      dbl[idx][0] = ( a*c + b*d ) / ( c*c + d*d + snr );
+      dbl[idx][1] = ( b*c - a*d ) / ( c*c + d*d + snr );
+
+    }
+  }
+
+  //IDFT
+  fftw_plan pDbl = fftw_plan_dft_2d( img->height, img->width, dbl, dbl, FFTW_BACKWARD, FFTW_ESTIMATE);
+  fftw_execute( pDbl );
+
+  IMG* dst = createImage( img->height, img->width );
+  double scale = img->height * img->width;
+  for( h = 0; h < dst->height; ++h){
+    for( w = 0; w < dst->width; ++w){
+      int idx = h * img->width + w;
+      double val = dbl[idx][0] * dbl[idx][0] + dbl[idx][1] * dbl[idx][1];
+      IMG_ELEM( dst, h, w) = sqrt(val) / scale;
+      //printf("dbl = %lf + %lf  i \n", dbl[idx][0]/scale, dbl[idx][1]/scale);      
+    }
+  }
+
+  saveImage( dst, "img/MBP/110826-1/deblurredResize.png");
+
+  return 0;
+
+}
