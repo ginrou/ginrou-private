@@ -173,41 +173,28 @@ int batch110801_2( int argc, char* argv[] ){
   return 0;
 }
 
+
+// blurベースの奥行き推定手法
 int batch110802( int argc, char* argv[] )
 {
-  IMG* left = readImage("img/MBP/110802-01/blurredLeft.png");
-  IMG* right = readImage("img/MBP/110802-01/blurredRight.png");  
-  IMG* cir = readImage("img/MBP/110802/circle.png");
+  IMG* left = readImage("img/MBP/110828-3/blurredLeft.png");
+  IMG* right = readImage("img/MBP/110828-3/blurredRight.png");  
+  IMG* cir = readImage("img/MBP/aperture/Zhou0002.png");
   Mat psfLeft[MAX_DISPARITY], psfRight[MAX_DISPARITY];
   Mat tmpPSF[MAX_DISPARITY];
   char filename[256];
   double par[2];
 
 
-  par[0] = 3.579218;
-  par[1] = -26.265516;
-  makeShiftBlurPSF( psfLeft, LEFT_CAM, cir, par);
+  par[0] = 1.6381;
+  par[1] = -25.5643;
+  makeShiftBlurPSF( psfLeft, RIGHT_CAM, cir, par);
 
-  par[0] = 1.500331;
-  par[1] = -25.745794;
-  makeShiftBlurPSF( psfRight, RIGHT_CAM, cir, par);
+  par[0] = -2.2457;
+  par[1] = 28.5836;
+  makeShiftBlurPSF( psfRight, LEFT_CAM, cir, par);
 
-  IMG* hoge = createImage( 64, 128 );
   for(int disp = 0; disp < MAX_DISPARITY; ++disp){
-
-    IMG* img = createImage( psfLeft[disp].row, psfLeft[disp].clm );
-    convertMat2IMG( &(psfLeft[disp]), img);
-    sprintf(filename, "img/MBP/110802-01/test/psfLeft%02d.png", disp);
-    resizeImage( img, hoge);
-    saveImage( hoge, filename);
-    releaseImage(&img);
-    
-    img = createImage( psfRight[disp].row, psfRight[disp].clm );
-    convertMat2IMG( &(psfRight[disp]), img);
-    sprintf(filename, "img/MBP/110802-01/test/psfRight%02d.png", disp);
-    resizeImage( img, hoge);
-    saveImage( hoge, filename);
-    releaseImage(&img);
 
     normalizeMat( psfLeft[disp], psfLeft[disp]);
     normalizeMat( psfRight[disp], psfRight[disp]);
@@ -222,15 +209,15 @@ int batch110802( int argc, char* argv[] )
   for(int d = 0; d < MAX_DISPARITY; ++d ){
     convertScaleImage( map, map, 0.0, d );
 
-    //leftConv[d] = blurWithPSFMap( left, psfLeft, map );
-    sprintf(filename, "img/MBP/110802-01/test/%02dbluLeft.png", d);
-    //saveImage( leftConv[d], filename );
-    leftConv[d] = readImage(filename);
+    leftConv[d] = blurWithPSFMap( left, psfLeft, map );
+    sprintf(filename, "img/MBP/110828-3/test/%02dbluLeft.png", d);
+    saveImage( leftConv[d], filename );
+    //leftConv[d] = readImage(filename);
     
-    //rightConv[d] = blurWithPSFMap( right, psfRight, map );
-    sprintf(filename, "img/MBP/110802-01/test/%02dbluRight.png", d);
-    //saveImage( rightConv[d], filename );
-    rightConv[d] = readImage(filename);
+    rightConv[d] = blurWithPSFMap( right, psfRight, map );
+    sprintf(filename, "img/MBP/110828-3/test/%02dbluRight.png", d);
+    saveImage( rightConv[d], filename );
+    //rightConv[d] = readImage(filename);
   }
 
   IMG* dispMap = createImage( left->height, left->width );
@@ -241,7 +228,7 @@ int batch110802( int argc, char* argv[] )
       int disp;
 
       for(int d = 0; d < MAX_DISPARITY/2; ++d){
-	int blk = 16;
+	int blk = 7;
 	double err = 0.0;
 	double hoge;
 
@@ -271,7 +258,7 @@ int batch110802( int argc, char* argv[] )
     }
   }
   
-  saveImage( dispMap, "img/MBP/110802-01/dispMap.png" );
+  saveImage( dispMap, "img/MBP/110828-3/dispMapblur.png" );
 }
 
 int batch110804( int argc, char* argv[] ){

@@ -1,0 +1,18 @@
+common parameters
+	Window Size [pixel] : height = 512, width = 512
+	base line length [camera corrdinate]: 0.060000 
+	aperture size [camera corrdinate]: 0.050000 
+	fov [angle] :  37.210222 
+	MAX DISPARITY : 45
+	MAX PSF RADIUS : 12
+
+
+left camera
+	focal depth : 2.905638 
+	aperture patern : 0
+	DTPParam : PSFSize = 0.833333 * disparity + -13.086012
+
+right camera
+	focal depth : 3.529682 
+	aperture patern : 0
+	DTPParam : PSFSize = 0.833333 * disparity + -10.772417

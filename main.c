@@ -7,10 +7,31 @@
 int main(int argc, char* argv[])
 {
   setbuf( stdout, NULL); // 改行をまたないように
+  int h, w;  
+
+  return batch110802(argc, argv);
+
+  IplImage *left = cvLoadImage("img/MBP/110828-2/blurredLeftStereo.png", CV_LOAD_IMAGE_GRAYSCALE);
+  IplImage *right = cvLoadImage("img/MBP/110828-2/blurredRightStereo.png", CV_LOAD_IMAGE_GRAYSCALE);
+  IplImage *dispLeft = cvCreateImage( cvGetSize(left), IPL_DEPTH_16S, 1);
+  CvStereoBMState* state = cvCreateStereoBMState( CV_STEREO_BM_BASIC, 32);
+  cvFindStereoCorrespondenceBM( right, left, dispLeft, state);
+  cvConvertScale( dispLeft, dispLeft, 1.0/4.0, 0.0);
+  cvSaveImage("img/MBP/110828-2/stereomapcv.png",dispLeft, NULL);
+  return 0;
   
-  int h, w;
-  IMG* imgLeft = readImage("img/MBP/110828-1/blurredLeft.png");
-  IMG* imgRight = readImage("img/MBP/110828-1/blurredRight.png");
+  IMG* img = createImage( 1024, 1024);
+  for(h=0;h<1024;++h){
+    for(w=0;w<1024;++w){
+      if( (w/8) % 2 == 0 )IMG_ELEM(img,h ,w ) = 200;
+      else IMG_ELEM(img,h ,w ) = 50;
+    }
+  }
+  saveImage( img, "img/MBP/110828-1/texture-line.png");
+
+
+  IMG* imgLeft = readImage("img/MBP/110828-2/blurredLeft.png");
+  IMG* imgRight = readImage("img/MBP/110828-2/blurredRight.png");
   IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
   size_t memSize = sizeof(fftw_complex) * imgLeft->height * imgLeft->width;
   fftw_complex *srcLeft  = (fftw_complex*)fftw_malloc(memSize);
@@ -63,9 +84,9 @@ int main(int argc, char* argv[])
     dblRight[disp] = deblurFFTW2( srcRight, psfRight[disp], snr, imgRight->height, imgRight->width);
 
     char filename[256];
-    sprintf(filename, "img/MBP/110828-1/test/dbl%02dLeft.png", disp);
+    sprintf(filename, "img/MBP/110828-2/test/dbl%02dLeft.png", disp);
     saveImage( dblLeft[disp], filename );
-    sprintf(filename, "img/MBP/110828-1/test/dbl%02dRihgt.png", disp);
+    sprintf(filename, "img/MBP/110828-2/test/dbl%02dRihgt.png", disp);
     saveImage( dblRight[disp], filename );
 
   }
@@ -74,7 +95,7 @@ int main(int argc, char* argv[])
   for( h = 0; h < dst->height; ++h){
     for( w= 0 ; w < dst->width ;++w ){
 
-      int blk = 4;
+      int blk = 7;
       double min = DBL_MAX;
       int disp;
 
@@ -101,8 +122,14 @@ int main(int argc, char* argv[])
 
   convertScaleImage( dst, dst, 4.0, 10.0 );
 
-  saveImage( dst, "img/MBP/110828-1/dispmap.png");
+  saveImage( dst, "img/MBP/110828-2/dispmap.png");
 
+
+  IMG_COL* icLeft = readImageColor("img/MBP/110828-2/blurredLeftStereo.png");
+  IMG_COL* icRight = readImageColor("img/MBP/110828-2/blurredRightStereo.png");
+  Mat fund = createHorizontalFundMat();
+  
+  saveImage( stereoRecursive(icLeft, icRight, &fund, MAX_DISPARITY, 1), "img/MBP/110828-2/stereomap.png");
 
   return 0;
 
