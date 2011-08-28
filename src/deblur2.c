@@ -85,6 +85,40 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
 
 }
 
+IMG* deblurFFTW2( fftw_complex* src, fftw_complex* psf, double snr, int height, int width)
+{
+  fftw_complex* dbl = (fftw_complex*)fftw_malloc( sizeof(fftw_complex)*height*width );
+  fftw_plan plan = fftw_plan_dft_2d( height, width, dbl, dbl, FFTW_BACKWARD, FFTW_ESTIMATE);
+  
+  //deblur
+  for(int i = 0; i < height * width ; ++i){
+    double a = src[i][0];
+    double b = src[i][1];
+    double c = psf[i][0];
+    double d = psf[i][1];
+    dbl[i][0] = ( a*c + b*d ) / ( c*c + d*d +snr );
+    dbl[i][1] = ( b*c - a*d ) / ( c*c + d*d +snr );
+  }
+  
+  //IFFT
+  fftw_execute( plan );
+  
+  IMG* ret = createImage( height, width);
+  double scale = height * width ;
+  for(int h = 0; h < height; ++h){
+    for(int w = 0; w < width; ++w){
+      int idx = h * width + w;
+      double val = dbl[idx][0] * dbl[idx][0] +dbl[idx][1] * dbl[idx][1] ;
+      IMG_ELEM( ret, h ,w) = sqrt(val) / scale ;
+    }
+  }
+
+  fftw_free(dbl);
+  fftw_destroy_plan(plan);
+  return ret;
+
+}
+
 
 IMG* deblurFFTWInvariant( IMG* src,
 			  IMG* psfBase,

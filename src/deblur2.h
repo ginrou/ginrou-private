@@ -26,6 +26,7 @@
  */
 IMG* deblurFFTW( IMG* img, IMG* psf);
 
+IMG* deblurFFTW2( fftw_complex* src, fftw_complex* psf, double snr, int height, int width);
 
 IMG* deblurFFTWInvariant( IMG* src,
 			  IMG* psfBase,

@@ -78,3 +78,111 @@ void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
     releaseImage(&img);
   }
 }
+
+void makeShiftBlurPSFFreq( int height, int width, int cam,
+			   fftw_complex* dst[MAX_DISPARITY],
+			   IMG* aperture, double param[2] )
+{
+  int h, w;
+  size_t memSize = sizeof( fftw_complex ) * height * width ;
+  fftw_complex* tmp1 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex* tmp2 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_plan plan1 = fftw_plan_dft_2d( height, width, tmp1, tmp1, FFTW_FORWARD, FFTW_ESTIMATE );
+  fftw_plan plan2 = fftw_plan_dft_2d( height, width, tmp2, tmp2, FFTW_FORWARD, FFTW_ESTIMATE );
+
+  for( int disp = 0; disp < MAX_DISPARITY; ++disp){
+    
+    // size of psf
+    double size = fabs( (double)disp * param[0] + param[1] );
+    if( size < 1.0 ) size = 1.0;
+
+    printf("disp = %d, size = %lf ", disp, size);
+
+    // copy image & resize
+    IMG* img1 = createImage( (int)size, (int)size );
+    IMG* img2 = createImage( (int)size+1, (int)size+1 );
+    resizeImage( aperture, img1 );
+    resizeImage( aperture, img2 );
+    
+    // flip
+    if( cam == LEFT_CAM ){
+      flipImage( img1, 0, 1);
+      flipImage( img2, 0, 1);
+    }else{
+      flipImage( img1, 1, 0);
+      flipImage( img2, 1, 0);
+    }
+    if( (double)disp * param[0] + param[1] < 0.0 ){
+      flipImage( img1, 1, 1);
+      flipImage( img2, 1, 1);
+    }
+
+    // fill to tmp
+    for(int i = 0; i < height * width ; ++ i){
+      tmp1[i][0] = 0.0;
+      tmp1[i][1] = 0.0;
+      tmp2[i][0] = 0.0;
+      tmp2[i][1] = 0.0;
+    }
+
+    // 小さい方
+    double norm = imageNormL1( img1 );
+    int center;
+    if( cam == LEFT_CAM ) 
+      center = ( MAX_DISPARITY + img1->width - disp ) / 2;
+    else 
+      center = ( MAX_DISPARITY + img1->width + disp ) / 2;
+    for( h = 0; h < img1->height; ++h){
+      for( w = 0 ; w < img1->width; ++w){
+	int y = h - img1->height/2;
+	int x = center - w ;
+	y += (y<0) ? height : 0 ;
+	x += (x<0) ? width  : 0 ; 
+	int idx = y * width + x;
+	tmp1[idx][0] = DBL_ELEM( img1, h ,w) / norm ;
+      }
+    }
+
+    // 大きい方
+    norm = imageNormL1( img2 );
+    if( cam == LEFT_CAM ) 
+      center = ( MAX_DISPARITY + img2->width - disp ) / 2;
+    else 
+      center = ( MAX_DISPARITY + img2->width + disp ) / 2;
+    for( h = 0; h < img2->height; ++h){
+      for( w = 0 ; w < img2->width; ++w){
+	int y = h - img2->height/2;
+	int x = center - w ;
+	y += (y<0) ? height : 0 ;
+	x += (x<0) ? width  : 0 ; 
+	int idx = y * width + x;
+	tmp2[idx][0] = DBL_ELEM( img2, h ,w) / norm ;
+      }
+    }
+
+    // FFT
+    fftw_execute( plan1 );
+    fftw_execute( plan2 );
+
+    //merge
+    double r = size - (int)size;
+    printf("r = %lf\n", r);
+    dst[disp] = (fftw_complex*)fftw_malloc( memSize );
+    for( int i = 0; i < height * width ; ++i){
+      dst[disp][i][0] = (1-r) * tmp1[i][0] + r * tmp2[i][0];
+      dst[disp][i][1] = (1-r) * tmp1[i][1] + r * tmp2[i][1];
+    }
+
+    releaseImage( &img1);
+    releaseImage( &img2);
+
+  }
+
+  fftw_destroy_plan(plan1);
+  fftw_destroy_plan(plan2);
+  fftw_free(tmp1);
+  fftw_free(tmp2);
+
+  return;
+
+}

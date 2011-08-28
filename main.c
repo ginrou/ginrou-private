@@ -7,133 +7,102 @@
 int main(int argc, char* argv[])
 {
   setbuf( stdout, NULL); // 改行をまたないように
-  int h, w;
-
-  IMG* img      = readImage("img/MBP/110827-1/blurredLeft5.png");
-  IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
-  IMG* dispMap  = readImage("img/MBP/110827-1/disparityMap5.png");
-  size_t memSize = sizeof(fftw_complex) * img->height * img->width ;
-  fftw_complex *src = (fftw_complex*)fftw_malloc(memSize);
-  fftw_complex *dbl = (fftw_complex*)fftw_malloc(memSize);
-
-  //showDispMap(dispMap);
-  //return 0;
-
-  //copy src
-  for( h = 0; h < img->height ; ++h ){
-    for( w = 0; w < img->width; ++w){
-      int idx = h * img->height + w;
-      src[idx][0] = (double)IMG_ELEM( img, h, w);
-      src[idx][1] = 0.0;
-    }
-  }
-
-  //copy psf
-  int kernels = 50;
-  fftw_complex *psf[50];
-  flipImage( aperture, 0, 1); //0,1
-  for( int i = 1; i < kernels; ++i ){
-
-    IMG* apIn = createImage( i, i );
-    resizeImage( aperture, apIn );
-
-    psf[i] = (fftw_complex*)fftw_malloc(memSize);
-    for(int n = 0; n < img->height * img->width; ++n){
-      psf[i][n][0] = 0.0;
-      psf[i][n][1] = 0.0;
-    }
-    
-    double norm = imageNormL1(apIn);
-    for( h = 0; h < i; ++h ){
-      for( w = 0 ; w < i; ++w ){
-	int y = h - i/2;
-	int x = w - i/2;
-	y += (y<0) ? img->height : 0;
-	x += (x<0) ? img->width  : 0;
-	int idx = y * img->width + x;
-	psf[i][idx][0] = DBL_ELEM( apIn, h, w) / norm ;
-      }
-    }
-    releaseImage( &apIn );
-  }
-	 
-
-
-  // makeplan and FFT
-  fftw_plan pSrc = fftw_plan_dft_2d( img->height, img->width, src, src, FFTW_FORWARD, FFTW_ESTIMATE);
-  fftw_execute(pSrc);
   
-  fftw_plan pPSF;
-  for( int i = 1; i < kernels; ++i){
-    pPSF = fftw_plan_dft_2d( img->height, img->width, psf[i], psf[i], FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute( pPSF );
-    fftw_destroy_plan( pPSF );
+  int h, w;
+  IMG* imgLeft = readImage("img/MBP/110828-1/blurredLeft.png");
+  IMG* imgRight = readImage("img/MBP/110828-1/blurredRight.png");
+  IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
+  size_t memSize = sizeof(fftw_complex) * imgLeft->height * imgLeft->width;
+  fftw_complex *srcLeft  = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *srcRight = (fftw_complex*)fftw_malloc(memSize);
+
+  double paramLeft[2]  = { 1.6381, -25.5643};
+  double paramRight[2] = { -2.2457, 28.5836};
+  
+  // copy src
+  for( h = 0; h < imgLeft->height; ++h){
+    for( w = 0 ; w < imgLeft->width ; ++w){
+      int idx = h * imgLeft->width + w;
+      srcLeft[idx][0] = DBL_ELEM( imgLeft, h, w);
+      srcLeft[idx][1] = 0.0;
+      srcRight[idx][0] = DBL_ELEM( imgRight, h, w);
+      srcRight[idx][1] = 0.0;
+    }
   }
 
+  //FFT
+  fftw_plan planSrcLeft = fftw_plan_dft_2d( imgLeft->height, imgLeft->width, srcLeft, srcLeft, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan planSrcRight = fftw_plan_dft_2d( imgRight->height, imgRight->width, srcRight, srcRight, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute( planSrcLeft );
+  fftw_execute( planSrcRight );
 
-  //deblur
-  IMG *dblImg[MAX_DISPARITY];
-  fftw_plan pDbl = fftw_plan_dft_2d( img->height, img->width, dbl, dbl, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-  double param1[2] = { -1.2857, 13.3661};
-  double param2[2] = { -1.6413, 17.838};
-  double param51[2] = { -5.6075/4.0, 43.1935};
-  double param52[2] = { 3.621871 / 4.0, -28.161897 };
-  double paramCalib[2] = { 0.1, 3.0};
-  double *param = param52;
+  fftw_complex* psfLeft[MAX_DISPARITY];
+  fftw_complex* psfRight[MAX_DISPARITY];
+  fftw_complex* fftw_tmp1 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex* fftw_tmp2 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_plan planTmp1 = fftw_plan_dft_2d( imgLeft->height, imgLeft->width, fftw_tmp1, fftw_tmp1, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan planTmp2 = fftw_plan_dft_2d( imgLeft->height, imgLeft->width, fftw_tmp2, fftw_tmp2, FFTW_FORWARD, FFTW_ESTIMATE);
 
+  makeShiftBlurPSFFreq( imgLeft->height, imgLeft->width, LEFT_CAM,
+			psfLeft, aperture, paramLeft );
+
+  makeShiftBlurPSFFreq( imgRight->height, imgRight->width, RIGHT_CAM, 
+			psfRight, aperture, paramRight);
+
+
+  IMG* dblLeft[MAX_DISPARITY];
+  IMG* dblRight[MAX_DISPARITY];
+
+  // deblur
   for(int disp = 0; disp < MAX_DISPARITY; ++disp){
-    double size = fabs( (double)disp * param[0] + param[1] );
-    double r = size - (int)size;
 
-    if( size < 1.0 ) {size = 1.0; r = 0.0 ;}
-    printf("dispartiy = %d, size = %lf  r = %lf\n", disp, size, r);
 
-    if( size > 50 )continue;
+    double snr = 0.002;
+    dblLeft[disp] = deblurFFTW2( srcLeft, psfLeft[disp], snr, imgLeft->height, imgLeft->width);
+    dblRight[disp] = deblurFFTW2( srcRight, psfRight[disp], snr, imgRight->height, imgRight->width);
 
-    for(h = 0; h < img->height; ++h){
-      for(w = 0 ; w < img->width; ++w){
-	int idx = h * img->width + w;
-	double a = src[idx][0] ;
-	double b = src[idx][1] ;
-	double c = (1-r)*psf[(int)size][idx][0] + r* psf[(int)size+1][idx][0];
-	double d = (1-r)*psf[(int)size][idx][1] + r* psf[(int)size+1][idx][1];
+    char filename[256];
+    sprintf(filename, "img/MBP/110828-1/test/dbl%02dLeft.png", disp);
+    saveImage( dblLeft[disp], filename );
+    sprintf(filename, "img/MBP/110828-1/test/dbl%02dRihgt.png", disp);
+    saveImage( dblRight[disp], filename );
 
-	double snr = 0.002;
-	dbl[idx][0] = ( a*c + b*d ) / ( c*c + d*d + snr);
-	dbl[idx][1] = ( b*c - a*d ) / ( c*c + d*d + snr);
-      }
-    }
-
-    //IDFT
-    fftw_execute( pDbl );
-
-    dblImg[disp] = createImage( img->height, img->width );
-    double scale = img->height * img->width;
-    for( h = 0; h < dblImg[disp]->height; ++h){
-      for( w = 0; w < dblImg[disp]->width; ++w){
-	int idx = h * img->width + w;
-	double val = dbl[idx][0] * dbl[idx][0] + dbl[idx][1] * dbl[idx][1];
-	IMG_ELEM( dblImg[disp], h, w) = sqrt(val) / scale;
-      }
-    }
-
-    if( param == paramCalib){
-      char filename[256];
-      sprintf( filename, "img/MBP/110827-1/test/%02d.png", disp);
-      saveImage( dblImg[disp], filename );
-    }
   }
 
-  IMG* dst = createImage( img->height, img->width );
+  IMG* dst = createImage( imgLeft->height, imgLeft->width );
   for( h = 0; h < dst->height; ++h){
-    for( w = 0; w < dst->width; ++w){
-      int disp = IMG_ELEM( dispMap, h, w);
-      IMG_ELEM( dst, h, w) = IMG_ELEM( dblImg[disp], h, w);
+    for( w= 0 ; w < dst->width ;++w ){
+
+      int blk = 4;
+      double min = DBL_MAX;
+      int disp;
+
+      for( int d = 0; d < MAX_DISPARITY; ++d){
+
+	double sum = 0.0;
+	for(int y = 0; y < blk; ++y){
+	  for( int x = 0; x < blk; ++x){
+	    sum += abs( IMG_ELEM( dblLeft[d], h+y, w+x) - IMG_ELEM( dblRight[d], h+y, w+x) );
+	  }
+	}
+
+	if( sum < min ){
+	  min = sum;
+	  disp = d;
+	}
+
+      }//d
+      
+      IMG_ELEM( dst, h, w) = disp;;
+
     }
   }
 
-  saveImage( dst, "img/MBP/110827-1/deblurredImage.png");
+  convertScaleImage( dst, dst, 4.0, 10.0 );
+
+  saveImage( dst, "img/MBP/110828-1/dispmap.png");
+
 
   return 0;
 

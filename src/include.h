@@ -10,7 +10,7 @@
 #define CENTER_CAM 1
 #define RIGHT_CAM 2
 
-#define MAX_DISPARITY 45
+#define MAX_DISPARITY 32
 #define MAX_PSF_SIZE 32
 #define FFT_SIZE 64
 #define CUT_OFF_SIZE FFT_SIZE //切り取る大きさはFFTのと同じにしなければならない

@@ -13,4 +13,8 @@ void makeBlurPSF( IMG* psf[MAX_DISPARITY],
 void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
 		       IMG* aperture, double par[2]);
 
+void makeShiftBlurPSFFreq( int height, int width, int cam,
+			   fftw_complex* dst[MAX_DISPARITY],
+			   IMG* aperture, double param[2] );
+
 #endif 

@@ -16,6 +16,9 @@ int batch110816( int argc, char* argv[] ); // 修論用システムの実験2 CA
 
 int batch110827( int argc, char* argv[] ); // 周波数領域におけるカーネルの線形補間を用いる事で中途半端なサイズのカーネルでもdeblurできるようになった
 
+int batch110828_1( int argc, char* argv[] ); // サブピクセルオーダーの視差マップを用いる事で、より高精度のぼけ除去を行えるように
+
 int batch_deblurTestCode( int argc, char* argv[]);
+int parameterCalibration( int argc, char* argv[]);
 
 #endif
