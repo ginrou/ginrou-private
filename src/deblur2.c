@@ -109,7 +109,7 @@ IMG* deblurFFTW2( fftw_complex* src, fftw_complex* psf, double snr, int height, 
     for(int w = 0; w < width; ++w){
       int idx = h * width + w;
       double val = dbl[idx][0] * dbl[idx][0] +dbl[idx][1] * dbl[idx][1] ;
-      IMG_ELEM( ret, h ,w) = sqrt(val) / scale ;
+      IMG_ELEM( ret, h ,w) = (uchar) (sqrt(val) / scale );
     }
   }
 

@@ -9,26 +9,7 @@ int main(int argc, char* argv[])
   setbuf( stdout, NULL); // 改行をまたないように
   int h, w;  
 
-  return batch110802(argc, argv);
-
-  IplImage *left = cvLoadImage("img/MBP/110828-2/blurredLeftStereo.png", CV_LOAD_IMAGE_GRAYSCALE);
-  IplImage *right = cvLoadImage("img/MBP/110828-2/blurredRightStereo.png", CV_LOAD_IMAGE_GRAYSCALE);
-  IplImage *dispLeft = cvCreateImage( cvGetSize(left), IPL_DEPTH_16S, 1);
-  CvStereoBMState* state = cvCreateStereoBMState( CV_STEREO_BM_BASIC, 32);
-  cvFindStereoCorrespondenceBM( right, left, dispLeft, state);
-  cvConvertScale( dispLeft, dispLeft, 1.0/4.0, 0.0);
-  cvSaveImage("img/MBP/110828-2/stereomapcv.png",dispLeft, NULL);
-  return 0;
-  
-  IMG* img = createImage( 1024, 1024);
-  for(h=0;h<1024;++h){
-    for(w=0;w<1024;++w){
-      if( (w/8) % 2 == 0 )IMG_ELEM(img,h ,w ) = 200;
-      else IMG_ELEM(img,h ,w ) = 50;
-    }
-  }
-  saveImage( img, "img/MBP/110828-1/texture-line.png");
-
+  //return batch110802(argc, argv);
 
   IMG* imgLeft = readImage("img/MBP/110828-2/blurredLeft.png");
   IMG* imgRight = readImage("img/MBP/110828-2/blurredRight.png");
@@ -39,7 +20,7 @@ int main(int argc, char* argv[])
 
   double paramLeft[2]  = { 1.6381, -25.5643};
   double paramRight[2] = { -2.2457, 28.5836};
-  
+
   // copy src
   for( h = 0; h < imgLeft->height; ++h){
     for( w = 0 ; w < imgLeft->width ; ++w){
