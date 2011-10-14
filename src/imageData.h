@@ -53,8 +53,8 @@ void releaseImageColor( IMG_COL **img);
 
 // clone image (create and convert);
 IMG* cloneImage( const IMG* src, IMG *dst);
-IMG* cloneImageFromMat( const Mat mat);
-Mat  cloneMatFromImage( const IMG* img);
+IMG* cloneImageFromMat(  Mat mat);
+Mat  cloneMatFromImage(  IMG* img);
 
 
 // convert image <--> matrix

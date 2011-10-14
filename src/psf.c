@@ -87,14 +87,13 @@ void makeBlurPSFMat(IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
       }
     }
 
-
-
     // normalize
     PSFNormalize( dst[disp] );
     releaseImage( &tmp1 );
     releaseImage( &tmp2 );
   }
 
+  return;
 
 }
 
@@ -365,7 +364,7 @@ void PSFCopyForFFTW( const Mat src, fftw_complex *dst , point size)
       int x = w - src.clm / 2;
       y += ( y < 0 ) ? size.y : 0 ;
       x += ( x < 0 ) ? size.x : 0 ;
-      int idx = y * size.y + x;
+      int idx = y * size.x + x;
       dst[idx][0]  = ELEM0( src, y, x);
     }
   }

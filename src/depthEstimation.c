@@ -272,6 +272,8 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
     // copy psf -> fft of psf
     filLeft[d] = (fftw_complex*)fftw_malloc( memSize );
     filRight[d] = (fftw_complex*)fftw_malloc( memSize );
+    PSFNormalize( psfLeft[d] );
+    PSFNormalize( psfRight[d] );
     PSFCopyForFFTW( psfLeft[d], filLeft[d], Point( width, height));
     PSFCopyForFFTW( psfRight[d], filRight[d], Point( width, height));
     
@@ -299,11 +301,30 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
       double yRr = capRight[i][0];
       double yRi = capRight[i][1];
 
-      double denom = fLr*fLr + fLi*fLi + fRr*fRr + fRi*fRi + SNR ;
+      double denom = fLr*fLr + fLi*fLi + fRr*fRr + fRi*fRi + 0.002 ;
       latent[d][i][0] = ( fLr*yLr + fLi*yLi + fRr*yRr + fRi*yRi ) / denom ;
-      latent[d][i][1] = ( fLr*yLi - fLi*yLr - fRr*yRi - fRi*yRr ) / denom ;
+      latent[d][i][1] = ( fLr*yLi - fLi*yLr + fRr*yRi - fRi*yRr ) / denom ;
     }
+
+    // debug : save latent image
+    fftw_complex *debugRegion = (fftw_complex*)fftw_malloc( memSize );
+    fftw_plan planDebug = fftw_plan_dft_2d( height, width, latent[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute( planDebug );
+    IMG* debugImage = createImage( height, width );
+    double scale = height*width;
+    for( h = 0; h < height; ++h){
+      for( w = 0 ; w < width; ++w){
+	IMG_ELEM( debugImage, h, w) = debugRegion[ h*width+w ][0] / scale;
+      }
+    }
+    char filename[256];
+    sprintf(filename, "test/latent%02d.png", d);
+    saveImage( debugImage, filename );
+
+
   }
+
+
 
 
   // compute residual and estiamte depth

@@ -192,17 +192,17 @@ IMG* cloneImage( const IMG* src, IMG *dst)
 
 }
 
-IMG* cloneImageFromMat( const Mat mat)
+IMG* cloneImageFromMat( Mat mat)
 {
   IMG* ret = createImage( mat.row, mat.clm );
   convertMat2IMG( &mat, ret );  
   return ret;
 }
 
-Mat  cloneMatFromImage( const IMG* img)
+Mat  cloneMatFromImage( IMG* img)
 {
   Mat ret = matrixAlloc( img->height, img->width );
-  convertIMG2Mat( img, ret);
+  convertIMG2Mat( img, &ret);
   return ret;
 }
 
