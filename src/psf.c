@@ -1,5 +1,9 @@
 #include "psf.h"
 
+// private functions
+void makeBlurPSFMatFreq( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
+			 point imgSize, int maxDepth);
+
 void makeShiftPSF(Mat psf[MAX_DISPARITY], int cam){
   
   for(int disp = 0; disp < MAX_DISPARITY; ++disp){
@@ -39,6 +43,165 @@ void makeBlurPSF( IMG* psf[MAX_DISPARITY],
 
   return;
 }
+
+void makeBlurPSFMat(IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
+		    point imgSize, int maxDepth)
+{
+  int h, w;
+  int height = imgSize.y;
+  int width =  imgSize.x;
+  for(int disp = 0; disp < maxDepth; ++disp){
+
+    // size
+    double size = fabs( (double)disp * param[0] + param[1] );
+    if(size < 1.0) size = 1.0;
+
+    // copy apeture -> tmp1, tmp2 
+    IMG* tmp1 = createImage( (int)size, (int)size );
+    IMG* tmp2 = createImage( (int)size+1, (int)size+1 );
+    resizeImage( aperture, tmp1 );
+    resizeImage( aperture, tmp2 );
+    if( (double)disp * param[0] + param[1]  < 0.0 ){
+      flipImage( tmp1, 1, 1);
+      flipImage( tmp2, 1, 1);
+    }
+
+    // copy to dst
+    dst[disp] = matrixAlloc( height, width);
+    double r = size - (int)size;
+    for( h = 0 ; h < height; ++h){
+      for( w = 0; w < width; ++w){
+	ELEM0( dst[disp], h , w) = 0.0;
+      }
+    }
+
+    for( h = 0 ; h < tmp1->height; ++h){
+      for( w = 0; w < tmp1->width; ++w){
+	ELEM0( dst[disp], h , w) += (1-r)*(double)IMG_ELEM( tmp1, h, w);
+      }
+    }
+
+    for( h = 0 ; h < tmp2->height; ++h){
+      for( w = 0; w < tmp2->width; ++w){
+	ELEM0( dst[disp], h , w) += r*(double)IMG_ELEM( tmp2, h, w);
+      }
+    }
+
+
+
+    // normalize
+    PSFNormalize( dst[disp] );
+    releaseImage( &tmp1 );
+    releaseImage( &tmp2 );
+  }
+
+
+}
+
+
+void makeBlurPSFMatFreq( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
+			 point imgSize, int maxDepth)
+{
+  int h ,w;
+  int height = imgSize.y;
+  int width  = imgSize.x;
+  size_t memSize = sizeof( fftw_complex ) * height * width ;
+
+  fftw_complex* img1 = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex* img2 = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex* result  = (fftw_complex*)fftw_malloc( memSize );
+  fftw_plan plan1 = fftw_plan_dft_2d( height, width, img1, img1, FFTW_FORWARD, FFTW_ESTIMATE );
+  fftw_plan plan2 = fftw_plan_dft_2d( height, width, img2, img2, FFTW_FORWARD, FFTW_ESTIMATE );
+  fftw_plan planResult = fftw_plan_dft_2d( height, width, result, result, FFTW_BACKWARD, FFTW_ESTIMATE );
+  
+  for( int disp = 0; disp < MAX_DISPARITY; ++disp){
+    
+    // size 
+    double size = fabs( (double)disp * param[0] + param[1] );
+    if( size < 1.0 ) size = 1.0;
+
+    printf("disp = %d, size = %lf\n", disp, size);
+    
+    // copy aperture to IMG
+    IMG *tmp1 = createImage( (int)size, (int)size );
+    IMG *tmp2 = createImage( (int)size + 1, (int)size + 1 );
+    resizeImage( aperture, tmp1);
+    resizeImage( aperture, tmp2);
+    if( (double)disp * param[0] + param[1] < 0.0 ){
+      flipImage( tmp1, 1, 1);
+      flipImage( tmp2, 1, 1);
+    }
+
+    printf("copy\n");
+
+    // copy to mat and pass to img1, img2
+    Mat mat1 = matrixAlloc( tmp1->height, tmp1->width);
+    Mat mat2 = matrixAlloc( tmp2->height, tmp2->width);
+    
+    convertIMG2Mat( tmp1, &mat1 ); //convert
+    convertIMG2Mat( tmp2, &mat2 );
+
+    PSFNormalize( mat1 ); // normalize
+    PSFNormalize( mat2 );
+
+    PSFCopyForFFTW( mat1, img1, imgSize ); // copy to fftw
+    PSFCopyForFFTW( mat2, img2, imgSize );
+
+    matrixFree( mat1 ); // cleaning
+    matrixFree( mat2 );
+    releaseImage( &tmp1 );
+    releaseImage( &tmp2 );
+
+    // FFT
+    fftw_execute( plan1 );
+    fftw_execute( plan2 );
+
+    printf("FFT\n");
+
+    // merge img1 and img2 as linear interpolation
+    double r = size - (int)size;
+    for( int i = 0 ; i < height * width ; ++i){
+      result[i][0] = (1-r) * img1[i][0] + r * img2[i][0];
+      result[i][1] = (1-r) * img1[i][1] + r * img2[i][1];
+    }
+
+    printf("merge\n");
+
+    // IDFT
+    fftw_execute( planResult );
+
+    printf("IDFT\n");
+
+    // copy result to dst
+    dst[disp] = matrixAlloc( height, width );
+
+    for( h = 0 ; h < height; ++h){
+      for( w = 0 ; w < width; ++w ){
+	int idx = h*width+w;
+	double scale = height*width;
+	double val = result[idx][0] *result[idx][0] + result[idx][1] *result[idx][1];
+	ELEM0( dst[disp], h, w) = sqrt(val)/scale;
+      }
+    }
+
+
+    printf("result\n");
+
+  }// d
+  
+  fftw_free( img1 );
+  fftw_free( img2 );
+  fftw_free( result );
+  fftw_destroy_plan( plan1 );
+  fftw_destroy_plan( plan2 );
+  fftw_destroy_plan( planResult );
+
+
+  return;
+}
+
+
+
 
 void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
 		       IMG* aperture, double par[2])
@@ -185,4 +348,34 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
 
   return;
 
+}
+
+
+
+void PSFCopyForFFTW( const Mat src, fftw_complex *dst , point size)
+{
+  // set all element to zero
+  for( int i = 0; i < size.y * size.x; ++i) 
+    dst[i][0] = dst[i][1] = 0.0;
+
+  // copy
+  for( int h = 0; h < src.row; ++h){
+    for( int w = 0 ; w < src.clm; ++w){
+      int y = h - src.row / 2;
+      int x = w - src.clm / 2;
+      y += ( y < 0 ) ? size.y : 0 ;
+      x += ( x < 0 ) ? size.x : 0 ;
+      int idx = y * size.y + x;
+      dst[idx][0]  = ELEM0( src, y, x);
+    }
+  }
+
+
+}
+
+
+
+void PSFNormalize( Mat psf )
+{
+  normalizeMat( psf, psf);
 }

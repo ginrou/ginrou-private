@@ -43,20 +43,24 @@ IMG_COL* readImageColor( char* filename );
 void saveImage( IMG* img, char *filename);
 void saveImageColor( IMG_COL *img, char *filename);
 
-//create new image strcut
+// create new image strcut
 IMG* createImage( int height, int width);
 IMG_COL* createImageColor(int height, int width);
 
-//release image struct
+// release image struct
 void releaseImage( IMG **img);
 void releaseImageColor( IMG_COL **img);
 
-//clone image (create and convert);
+// clone image (create and convert);
 IMG* cloneImage( const IMG* src, IMG *dst);
+IMG* cloneImageFromMat( const Mat mat);
+Mat  cloneMatFromImage( const IMG* img);
 
-//convert image <--> matrix
+
+// convert image <--> matrix
 void convertIMG2Mat( IMG* src, Mat* dst); 
 void convertMat2IMG( Mat* src, IMG* dst);
+
 
 
 #endif __IMAGE_DATA__

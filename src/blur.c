@@ -135,6 +135,41 @@ IMG* blurWithPSFMap( IMG* img, Mat psf[], IMG* psfMap)
 }
 
 
+IMG* blurMat2IMG( IMG *src, Mat psf )
+{
+  Mat blurred = blurMat2Mat( src, psf);
+  IMG* ret = createImage( blurred.row, blurred.clm);
+  convertMat2IMG( &blurred, ret );
+  matrixFree( blurred );
+  return ret;
+}
+
+
+Mat blurMat2Mat( IMG *src, Mat psf )
+{
+  Mat dst = matrixAlloc( src->height, src->width );
+  for( int h = 0 ; h < dst.row; ++h){
+    for( int w = 0 ; w < dst.clm; ++w){
+      ELEM0( dst, h, w ) = 0.0;
+      for( int y = 0; y < psf.row ; ++y){
+	for( int x = 0 ; x < psf.clm ; ++x){
+	  int py = h + y - psf.row / 2;
+	  int px = w + x - psf.clm /2 ;
+
+	  if( py < 0 || py >= dst.row || px < 0 || px >= dst.clm) continue;
+	  else
+	    ELEM0( dst, h, w) += (double)IMG_ELEM( src, py, px ) * ELEM0( psf, y, x );
+	}
+      }
+    }
+  }
+
+  return dst;
+
+}
+
+
+
 void normalize( Complex arr[FFT_SIZE][FFT_SIZE] )
 {
   double norm = 0.0;
