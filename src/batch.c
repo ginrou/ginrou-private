@@ -1153,3 +1153,82 @@ int parameterCalibration( int argc, char* argv[])
 
 
 }
+
+
+
+
+int batch111018( int argc, char* argv[] )
+{
+    IMG *inputLeft, *inputRight;
+  IMG *apertureLeft, *apertureRight;
+  double paramLeft[2], paramRight[2];
+  fftw_complex *psfLeft[MAX_DISPARITY], *psfRight[MAX_DISPARITY];
+
+  
+  char buf[256];
+  FILE* fp = fopen( argv[1], "r");
+  
+  if( fp == NULL ){
+    printf("there is no file as %s\n", argv[1]);
+    return 0;
+  }
+
+  // input images
+  //fgets( buf, 256, fp );
+  fscanf( fp, "%s", buf);
+  inputLeft = readImage(buf);
+  fscanf( fp, "%s", buf);
+  inputRight = readImage(buf);
+  
+  // apetures
+  fscanf( fp, "%s", buf);
+  apertureLeft = readImage(buf);
+  fscanf( fp, "%s", buf);
+  apertureRight = readImage(buf);
+
+  // parameters
+  fscanf( fp, "%lf %lf", &paramLeft[0], &paramLeft[1]);
+  printf( "parameter left = %lf , %lf\n", paramLeft[0], paramLeft[1]);
+  fscanf( fp, "%lf %lf", &paramRight[0], &paramRight[1]);
+  printf( "parameter right = %lf , %lf\n", paramRight[0], paramRight[1]);
+
+
+  // convert to psf
+  fscanf( fp, "%s", buf);
+  if( strcmp( buf, "1" ) == 0 ){
+    printf("disparity == YES\n");
+    makeShiftBlurPSFFreq( inputLeft->height, inputLeft->width, LEFT_CAM,
+			  psfLeft, apertureLeft, paramLeft);
+    makeShiftBlurPSFFreq( inputRight->height, inputRight->width, RIGHT_CAM,
+			  psfRight, apertureRight, paramRight);
+  }else{
+    printf("disparity == NO \n");
+    makeBlurPSFFreq( apertureLeft, paramLeft, psfLeft,
+		     Point( inputLeft->width, inputLeft->height), MAX_DISPARITY);
+    makeBlurPSFFreq( apertureRight, paramRight, psfRight,
+		     Point( inputRight->width, inputRight->height), MAX_DISPARITY);
+  }
+
+
+  // compute disparity map
+  IMG* disparityMap;
+  fscanf( fp, "%s", buf);
+  if( strcmp( buf, "1" ) == 0 ){
+    printf("frequency region depth estiamtion\n");
+    disparityMap = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  }else{
+    printf("stereo base depth estimation\n");
+    Mat fund = createHorizontalFundMat();
+    IMG_COL *tmpLeft = convertIMG2IMG_COL( inputLeft );
+    IMG_COL *tmpRight = convertIMG2IMG_COL( inputRight );
+    disparityMap = stereoRecursive( tmpLeft, tmpRight, &fund, MAX_DISPARITY, 1);
+  }
+  
+  fscanf( fp, "%s", buf);
+  saveImage( disparityMap, buf );
+
+
+  fclose(fp);
+
+
+}

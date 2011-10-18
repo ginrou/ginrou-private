@@ -303,36 +303,6 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, fftw_complex* psfLeft[], fft
     sprintf(filename, "test/latent%02d.png", d);
     saveImage( debugImage, filename );
 
-    // debug : save psf
-    planDebug = fftw_plan_dft_2d(height, width, psfLeft[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_execute( planDebug );
-    for( h = 0; h < height; ++h){
-      for( w = 0 ; w < width; ++w){
-	int i = h*width+w;
-	double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
-	hoge = 100000*sqrt(hoge)/scale;
-	if( hoge > 255 ) hoge = 200;
-	IMG_ELEM( debugImage, h, w) = hoge;
-      }
-    }
-    sprintf( filename, "test/psfLeft%02d.png", d);
-    saveImage( debugImage, filename);
-
-    planDebug = fftw_plan_dft_2d(height, width, psfRight[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_execute( planDebug );
-    for( h = 0; h < height; ++h){
-      for( w = 0 ; w < width; ++w){
-	int i = h*width+w;
-	double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
-	hoge = 1000*sqrt(hoge)/scale;
-	if( hoge > 255 ) hoge = 200;
-	IMG_ELEM( debugImage, h, w) = hoge;
-      }
-    }
-    sprintf( filename, "test/psfRight%02d.png", d);
-    saveImage( debugImage, filename);
-
-
     // debug zone end
 
   }

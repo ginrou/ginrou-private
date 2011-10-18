@@ -42,4 +42,7 @@ void PSFNormalize( Mat psf );
 // 余分な0の領域を除外
 Mat PSFCutoffZeroRegion( Mat src);
 
+// 0でない数をカウント
+int numOfNonZero( Mat mat );
+
 #endif 

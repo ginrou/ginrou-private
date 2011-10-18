@@ -250,7 +250,7 @@ IMG_COL* convertIMG2IMG_COL( const IMG* src)
 {
   IMG_COL* dst = createImageColor( src->height, src->width);
   for(int c = 0; c < 3; ++c ){
-    cloneImage( src , dst->channel[c]);
+    dst->channel[c] = cloneImage( src , NULL);
   }
   return dst;
 }

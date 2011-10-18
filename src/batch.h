@@ -18,6 +18,8 @@ int batch110827( int argc, char* argv[] ); // 周波数領域におけるカー�
 
 int batch110828_1( int argc, char* argv[] ); // サブピクセルオーダーの視差マップを用いる事で、より高精度のぼけ除去を行えるように
 
+int batch111018( int argc, char* argv[] ); // バッチ処理 を行えるようにした
+
 int batch_deblurTestCode( int argc, char* argv[]);
 int parameterCalibration( int argc, char* argv[]);
 

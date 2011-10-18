@@ -114,7 +114,6 @@ void makeBlurPSFFreq( IMG* aperture, double param[2], fftw_complex* dst[MAX_DISP
     //size
     double size = fabs( (double)d * param[0] + param[1] );
     if(size < 1.0 ) size = 1.0;
-    printf("d = %d, size = %lf\n", d, size );
 
     // copy aperture to IMG1, IMG2 and resize
     IMG *tmp1 = createImage( (int)size, (int)size );
@@ -183,7 +182,6 @@ void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
     double size = fabs( (double)disp * param[0] + param[1] );
     if( size < 1.0 ) size = 1.0;
 
-    printf("disp = %d, size = %lf\n", disp, size);
     
     // copy aperture to IMG
     IMG *tmp1 = createImage( (int)size, (int)size );
@@ -322,8 +320,6 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
     double size = fabs( (double)disp * param[0] + param[1] );
     if( size < 1.0 ) size = 1.0;
 
-    printf("disp = %d, size = %lf ", disp, size);
-
     // copy image & resize
     IMG* img1 = createImage( (int)size, (int)size );
     IMG* img2 = createImage( (int)size+1, (int)size+1 );
@@ -392,7 +388,7 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
 
     //merge
     double r = size - (int)size;
-    printf("r = %lf\n", r);
+
     dst[disp] = (fftw_complex*)fftw_malloc( memSize );
     for( int i = 0; i < height * width ; ++i){
       dst[disp][i][0] = (1-r) * tmp1[i][0] + r * tmp2[i][0];
@@ -470,4 +466,16 @@ Mat PSFCutoffZeroRegion( Mat src){
 
   PSFNormalize(dst);
   return dst;
+}
+
+
+
+int numOfNonZero( Mat mat ){
+  int count = 0;
+  for( int r = 0; r < mat.row; ++r){
+    for( int c = 0; c < mat.clm; ++c){
+      if( ELEM0(mat, r, c) > 0.00001 ) count++;
+    }
+  }
+  return count;
 }
