@@ -246,6 +246,31 @@ void saveImageColor( IMG_COL *img, char *filename)
 }
 
 
+IMG_COL* convertIMG2IMG_COL( const IMG* src)
+{
+  IMG_COL* dst = createImageColor( src->height, src->width);
+  for(int c = 0; c < 3; ++c ){
+    cloneImage( src , dst->channel[c]);
+  }
+  return dst;
+}
+
+IMG* convertIMG_COL2IMG( const IMG_COL* src)
+{
+  IMG* dst = createImage( src->height, src->width);
+  for(int h = 0; h < dst->height; ++h){
+    for( int w = 0 ;w < dst->width; ++w){
+      double sum = 0.0;
+      for( int c = 0; c < 3; ++c)
+	sum += IMG_ELEM( src->channel[c], h, w);
+      IMG_ELEM( dst, h, w) = sum / 3.0;
+    }
+  }
+  return dst;
+}
+
+
+
 void convertIMG2Mat( IMG* src, Mat* dst)
 {
   if( dst == NULL ) return;

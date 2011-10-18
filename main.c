@@ -7,40 +7,78 @@ int main(int argc, char* argv[])
 {
   setbuf( stdout, NULL); // 改行をまたないように
   int h, w;  
-  IMG* aperture = readImage("img/MBP/111014/circle.png");
+
+  IMG *inputLeft, *inputRight;
+  IMG *apertureLeft, *apertureRight;
+  double paramLeft[2], paramRight[2];
   fftw_complex *psfLeft[MAX_DISPARITY], *psfRight[MAX_DISPARITY];
 
-  /*
-  IMG* leftInput = readImage("img/MBP/110828-3/blurredLeft.png");
-  IMG* rightInput = readImage("img/MBP/110828-3/blurredLeft.png");
-  double paramLeft[] = {0.833333, -13.086012};
-  double paramRight[] = {0.833333, -10.772417};
-  makeShiftBlurPSFFreq( leftInput->height, leftInput->height, LEFT_CAM,
-			psfLeft, aperture, paramLeft);
-
-  makeShiftBlurPSFFreq( rightInput->height, rightInput->height, RIGHT_CAM,
-			psfRight, aperture, paramRight);
-  */
-
-
-  IMG* leftInput = readImage("img/MBP/111014/blurredLeft.png");
-  IMG* rightInput = readImage("img/MBP/111014/blurredLeft.png");
-  double paramLeft[] = {1.209449, -9.404082  };
-  double paramRight[] = {1.209449, -6.313580  };
-  point imgSize = Point( leftInput->width, leftInput->height);
-  makeBlurPSFFreq( aperture, paramLeft, psfLeft, imgSize, MAX_DISPARITY);
-  makeBlurPSFFreq( aperture, paramLeft, psfRight, imgSize, MAX_DISPARITY);
-
-
-
-
-
-  IMG* depthMap = latentBaseEstimationIMG( leftInput, rightInput, psfLeft, psfRight );
   
-  saveImage(depthMap, "img/MBP/111014/depthmap.png");
+  char buf[256];
+  FILE* fp = fopen( argv[1], "w");
+  
+  if( fp == NULL ){
+    printf("there is no file as %s\n", argv[1]);
+    return 0;
+  }
 
+  // input images
+  fgets( buf, 256, fp );
+  inputLeft = readImage(buf);
+  fgets( buf, 256, fp );
+  inputRight = readImage(buf);
+
+  // apetures
+  fgets( buf, 256, fp);
+  apertureLeft = readImage(buf);
+  fgets( buf, 256, fp);
+  apertureRight = readImage(buf);
+
+  // parameters
+  fgets( buf, 256, fp);
+  fscanf( fp, "%lf, %lf", &paramLeft[0], &paramLeft[1]);
+  fgets( buf, 256, fp);
+  fscanf( fp, "%lf, %lf", &paramRight[0], &paramRight[1]);
+
+  // convert to psf
+  fgets( buf, 256, fp);
+  if( strcmp( buf, "1" ) == 0 ){
+    printf("disparity == YES\n");
+    makeShiftBlurPSFFreq( inputLeft->height, inputLeft->width, LEFT_CAM,
+			  psfLeft, apertureLeft, paramLeft);
+    makeShiftBlurPSFFreq( inputRight->height, inputRight->width, RIGHT_CAM,
+			  psfRight, apertureRight, paramRight);
+  }else{
+    printf("disparity == NO \n");
+    makeBlurPSFFreq( apertureLeft, paramLeft, psfLeft,
+		     Point( inputLeft->width, inputLeft->height), MAX_DISPARITY);
+    makeBlurPSFFreq( apertureRight, paramRight, psfRight,
+		     Point( inputRight->width, inputRight->height), MAX_DISPARITY);
+  }
+
+
+  // compute disparity map
+  IMG* disparityMap;
+  fgets( buf, 256, fp);
+  if( strcmp( buf, "1" ) == 0 ){
+    printf("frequency region depth estiamtion\n");
+    disparityMap = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  }else{
+    printf("stereo base depth estimation\n");
+    Mat fund = createHorizontalFundMat();
+    IMG_COL *tmpLeft = convertIMG2IMG_COL( inputLeft );
+    IMG_COL *tmpRight = convertIMG2IMG_COL( inputRight );
+    disparityMap = stereoRecursive( tmpLeft, tmpRight, &fund, MAX_DISPARITY, 1);
+  }
+  
+  fgets( buf, 256, fp);
+  saveImage( disparityMap, buf );
+
+
+  fclose(fp);
 
   return 0;
+
 
 }
 

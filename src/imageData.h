@@ -56,6 +56,10 @@ IMG* cloneImage( const IMG* src, IMG *dst);
 IMG* cloneImageFromMat(  Mat mat);
 Mat  cloneMatFromImage(  IMG* img);
 
+// convet IMG <--> IMG_COL
+IMG_COL* convertIMG2IMG_COL( const IMG* src);
+IMG* convertIMG_COL2IMG( const IMG_COL* src);
+
 
 // convert image <--> matrix
 void convertIMG2Mat( IMG* src, Mat* dst); 
