@@ -77,13 +77,6 @@ int main( int argc, char* argv[]){
     IMG* imgRight = createImage( blurred.row, blurred.clm );
     convertMat2IMG( &blurred, imgRight );
     
-    IMG* depthmap =  latentBaseEstimationIMG( imgLeft, imgRight, psfLeft, psfRight );
-    convertScaleImage( depthmap, depthmap,  4.0, 0.0 );
-
-    char filename[256];
-    sprintf( filename, "test/depth%02d.png", d);
-    saveImage( depthmap, filename );
-
     /*
     sprintf( filename, "test/blurredLeft%02d.png", d);
     saveImage( imgLeft, filename );

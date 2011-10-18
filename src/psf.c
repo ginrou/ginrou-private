@@ -44,8 +44,8 @@ void makeBlurPSF( IMG* psf[MAX_DISPARITY],
   return;
 }
 
-void makeBlurPSFMat(IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
-		    point imgSize, int maxDepth)
+void makeBlurPSFMatFreq(IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
+			point imgSize, int maxDepth)
 {
   int h, w;
   int height = imgSize.y;
@@ -98,7 +98,71 @@ void makeBlurPSFMat(IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
 }
 
 
-void makeBlurPSFMatFreq( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
+void makeBlurPSFFreq( IMG* aperture, double param[2], fftw_complex* dst[MAX_DISPARITY],
+		     point imgSize, int maxDepth)
+{
+  int h, w;
+  int height = imgSize.y;
+  int width = imgSize.x;
+  size_t memSize = sizeof( fftw_complex ) * height * width;
+  
+  fftw_complex* img1 = (fftw_complex*)fftw_malloc( memSize);
+  fftw_complex* img2 = (fftw_complex*)fftw_malloc( memSize);
+  fftw_plan plan1 = fftw_plan_dft_2d( height, width, img1, img1, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan plan2 = fftw_plan_dft_2d( height, width, img2, img2, FFTW_FORWARD, FFTW_ESTIMATE);  
+  for( int d = 0; d < maxDepth; ++d){
+    //size
+    double size = fabs( (double)d * param[0] + param[1] );
+    if(size < 1.0 ) size = 1.0;
+    printf("d = %d, size = %lf\n", d, size );
+
+    // copy aperture to IMG1, IMG2 and resize
+    IMG *tmp1 = createImage( (int)size, (int)size );
+    IMG *tmp2 = createImage( (int)size + 1, (int)size + 1 );
+    resizeImage( aperture, tmp1);
+    resizeImage( aperture, tmp2);
+    if( (double)d * param[0] + param[1] < 0.0 ){
+      flipImage( tmp1, 1, 1);
+      flipImage( tmp2, 1, 1);
+    }
+    
+    // copy to FFTW
+    Mat mat1 = cloneMatFromImage(tmp1);
+    Mat mat2 = cloneMatFromImage(tmp2);    
+    PSFNormalize(mat1);
+    PSFNormalize(mat2);
+    PSFCopyForFFTW( mat1, img1, imgSize ); 
+    PSFCopyForFFTW( mat2, img2, imgSize ); 
+    
+    // FFT
+    fftw_execute( plan1 );
+    fftw_execute( plan2 );
+    
+    // merge
+    double r = size - (int)size;
+    dst[d] = (fftw_complex*)fftw_malloc( memSize );
+    for( int i = 0 ; i < height* width ; ++i){
+      dst[d][i][0] = (1-r) * img1[i][0] + r * img2[i][0];
+      dst[d][i][1] = (1-r) * img1[i][1] + r * img2[i][1];
+    }
+
+    //clean up
+    matrixFree(mat1);
+    matrixFree(mat2);
+    releaseImage(&tmp1);
+    releaseImage(&tmp2);
+
+  }
+
+  fftw_destroy_plan( plan1 );
+  fftw_destroy_plan( plan2 );
+  fftw_free( img1 );
+  fftw_free( img2 );
+  return;
+}
+
+
+void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
 			 point imgSize, int maxDepth)
 {
   int h ,w;
@@ -354,9 +418,10 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
 void PSFCopyForFFTW( const Mat src, fftw_complex *dst , point size)
 {
   // set all element to zero
-  for( int i = 0; i < size.y * size.x; ++i) 
-    dst[i][0] = dst[i][1] = 0.0;
-
+  for( int i = 0; i < size.y * size.x; ++i) {
+    dst[i][0] = 0.0;
+    dst[i][1] = 0.0;
+  }
   // copy
   for( int h = 0; h < src.row; ++h){
     for( int w = 0 ; w < src.clm; ++w){
@@ -365,10 +430,9 @@ void PSFCopyForFFTW( const Mat src, fftw_complex *dst , point size)
       y += ( y < 0 ) ? size.y : 0 ;
       x += ( x < 0 ) ? size.x : 0 ;
       int idx = y * size.x + x;
-      dst[idx][0]  = ELEM0( src, y, x);
+      dst[idx][0]  = ELEM0( src, h, w);
     }
   }
-
 
 }
 
@@ -377,4 +441,33 @@ void PSFCopyForFFTW( const Mat src, fftw_complex *dst , point size)
 void PSFNormalize( Mat psf )
 {
   normalizeMat( psf, psf);
+}
+
+Mat PSFCutoffZeroRegion( Mat src){
+  if( src.row == 0 || src.clm == 0) return src;
+  int horizontalEdge = 0;
+  int vertcialEdge = 0;
+  int h, w;
+
+  for( h = 0; h < src.row; ++h){
+    for( w = 0 ;w < src.clm; ++w){
+      if( ELEM0( src, h, w) > DBL_MIN ){
+	if( horizontalEdge < w ) horizontalEdge = w;
+	if( vertcialEdge < h )	vertcialEdge = h;
+      }
+    }
+  }
+
+  if( vertcialEdge == 0 ) vertcialEdge = 1;
+  if( horizontalEdge == 0 ) horizontalEdge = 1;
+
+  Mat dst = matrixAlloc( vertcialEdge, horizontalEdge );
+  for( h = 0; h < dst.row; ++h){
+    for( w = 0; w < dst.clm; ++w){
+      ELEM0( dst, h, w) = ELEM0( src, h, w);
+    }
+  }
+
+  PSFNormalize(dst);
+  return dst;
 }

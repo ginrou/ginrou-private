@@ -61,7 +61,7 @@ IMG* deblurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
 }
 
 
-IMG* latentBaseEstimationIMG( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[])
+IMG* latentBaseEstimationIMG( IMG* left, IMG* right, fftw_complex* psfLeft[], fftw_complex* psfRight[])
 {
   Mat result = latentBaseEstimationMat( left, right, psfLeft, psfRight );
   IMG* dst = createImage( result.row, result.clm);
@@ -242,7 +242,7 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
 }
 
 
-Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[])
+Mat latentBaseEstimationMat( IMG* left, IMG* right, fftw_complex* psfLeft[], fftw_complex* psfRight[])
 {
   int h, w;
   int height = left->height;
@@ -251,7 +251,6 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
   size_t memSize = sizeof( fftw_complex ) * height * width ;
   fftw_complex *capLeft = (fftw_complex*)fftw_malloc( memSize );
   fftw_complex *capRight = (fftw_complex*)fftw_malloc( memSize ); 
-  fftw_complex *filLeft[MAX_DISPARITY], *filRight[MAX_DISPARITY];
   fftw_complex *latent[MAX_DISPARITY];
 
   // FFT of captured images
@@ -269,44 +268,26 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
   // FFT of PSF and compute latent image
   for( int d = 0; d < MAX_DISPARITY; ++d){
 
-    // copy psf -> fft of psf
-    filLeft[d] = (fftw_complex*)fftw_malloc( memSize );
-    filRight[d] = (fftw_complex*)fftw_malloc( memSize );
-    PSFNormalize( psfLeft[d] );
-    PSFNormalize( psfRight[d] );
-    PSFCopyForFFTW( psfLeft[d], filLeft[d], Point( width, height));
-    PSFCopyForFFTW( psfRight[d], filRight[d], Point( width, height));
-    
-    fftw_plan pLeft = fftw_plan_dft_2d( height, width, filLeft[d], filLeft[d],
-					   FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan pRight = fftw_plan_dft_2d( height, width, filRight[d], filRight[d],
-					   FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute( pLeft );
-    fftw_execute( pRight );
-    fftw_destroy_plan( pLeft );
-    fftw_destroy_plan( pRight );
-
     // compute latent image
     latent[d] = (fftw_complex*)fftw_malloc( memSize );
     for( int i = 0; i < height * width; ++i){
-      double fLr = filLeft[d][i][0];
-      double fLi = filLeft[d][i][1];
 
-      double fRr = filRight[d][i][0];
-      double fRi = filRight[d][i][1];
-
+      double fLr = psfLeft[d][i][0];
+      double fLi = psfLeft[d][i][1];
+      double fRr = psfRight[d][i][0];
+      double fRi = psfRight[d][i][1];
       double yLr = capLeft[i][0];
       double yLi = capLeft[i][1];
-
       double yRr = capRight[i][0];
       double yRi = capRight[i][1];
 
-      double denom = fLr*fLr + fLi*fLi + fRr*fRr + fRi*fRi + 0.002 ;
+      double denom = fLr*fLr + fLi*fLi + fRr*fRr + fRi*fRi + SNR ;
       latent[d][i][0] = ( fLr*yLr + fLi*yLi + fRr*yRr + fRi*yRi ) / denom ;
       latent[d][i][1] = ( fLr*yLi - fLi*yLr + fRr*yRi - fRi*yRr ) / denom ;
     }
 
     // debug : save latent image
+    char filename[256];
     fftw_complex *debugRegion = (fftw_complex*)fftw_malloc( memSize );
     fftw_plan planDebug = fftw_plan_dft_2d( height, width, latent[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
     fftw_execute( planDebug );
@@ -314,20 +295,50 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
     double scale = height*width;
     for( h = 0; h < height; ++h){
       for( w = 0 ; w < width; ++w){
-	IMG_ELEM( debugImage, h, w) = debugRegion[ h*width+w ][0] / scale;
+	int i = h*width+w;
+	double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
+	IMG_ELEM( debugImage, h, w) = sqrt(hoge) / scale;
       }
     }
-    char filename[256];
     sprintf(filename, "test/latent%02d.png", d);
     saveImage( debugImage, filename );
 
+    // debug : save psf
+    planDebug = fftw_plan_dft_2d(height, width, psfLeft[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute( planDebug );
+    for( h = 0; h < height; ++h){
+      for( w = 0 ; w < width; ++w){
+	int i = h*width+w;
+	double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
+	hoge = 100000*sqrt(hoge)/scale;
+	if( hoge > 255 ) hoge = 200;
+	IMG_ELEM( debugImage, h, w) = hoge;
+      }
+    }
+    sprintf( filename, "test/psfLeft%02d.png", d);
+    saveImage( debugImage, filename);
+
+    planDebug = fftw_plan_dft_2d(height, width, psfRight[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute( planDebug );
+    for( h = 0; h < height; ++h){
+      for( w = 0 ; w < width; ++w){
+	int i = h*width+w;
+	double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
+	hoge = 1000*sqrt(hoge)/scale;
+	if( hoge > 255 ) hoge = 200;
+	IMG_ELEM( debugImage, h, w) = hoge;
+      }
+    }
+    sprintf( filename, "test/psfRight%02d.png", d);
+    saveImage( debugImage, filename);
+
+
+    // debug zone end
 
   }
 
-
-
-
   // compute residual and estiamte depth
+  Mat residMap = matrixAlloc( height, width);
   fftw_complex *residMapLeft = (fftw_complex*)fftw_malloc( memSize );
   fftw_complex *residMapRight = (fftw_complex*)fftw_malloc( memSize );
   fftw_plan residLeftPlan = fftw_plan_dft_2d( height, width, 
@@ -354,10 +365,10 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
     for( int i = 0; i < height*width ;++i){
       double xr = latent[d][i][0];
       double xi = latent[d][i][1];
-      double fLr = filLeft[d][i][0];
-      double fLi = filLeft[d][i][1];
-      double fRr = filRight[d][i][0];
-      double fRi = filRight[d][i][1];
+      double fLr = psfLeft[d][i][0];
+      double fLi = psfLeft[d][i][1];
+      double fRr = psfRight[d][i][0];
+      double fRi = psfRight[d][i][1];
       double yLr = capLeft[i][0];
       double yLi = capLeft[i][1];
       double yRr = capRight[i][0];
@@ -374,32 +385,45 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
     fftw_execute( residLeftPlan );
     fftw_execute( residRightPlan );
     
+    // resid map
     for( h = 0; h < height; ++h){
       for( w = 0; w < width; ++w){
 	int i = h * width + w;
 	double scale = height * width ;
 	double val;
-	val = residMapLeft[i][0]*residMapLeft[i][0] 
-	  + residMapLeft[i][1]*residMapLeft[i][1];
+
+	val = residMapLeft[i][0]*residMapLeft[i][0] + residMapLeft[i][1]*residMapLeft[i][1];
 	double residLeft = sqrt(val*val) / scale;
 
-	val = residMapRight[i][0]*residMapRight[i][0] 
-	  + residMapRight[i][1]*residMapRight[i][1];
+	val = residMapRight[i][0]*residMapRight[i][0] + residMapRight[i][1]*residMapRight[i][1];
 	double residRight = sqrt( val*val ) / scale;
 
-	double resid = residLeft + residRight;
-
-	if( resid < ELEM0( minMap, h, w) ){
-	  ELEM0( minMap, h, w) = resid;
-	  ELEM0( dst, h, w ) = d;
-	}
-
+	ELEM0( residMap, h, w ) = residLeft + residRight;
       }//w
     }//h
 
-    // free filter and estimated latent image
-    fftw_free( filLeft[d] );
-    fftw_free( filRight[d] );
+    for( h = 0; h < height; ++h){
+      for( w = 0; w < width; ++w){
+	double sum = 0.0, val;
+	for( int y = 0 ; y < WINDOW_SIZE; ++y){
+	  for( int x = 0; x < WINDOW_SIZE; ++x){
+	    if( y+h >= height || x+w >= width ) continue;
+	    else{
+	      sum += ELEM0( residMap, h+y, w+x);
+	    }
+	  }// x
+	}// y 
+
+	if( sum < ELEM0( minMap, h, w) ){
+	  ELEM0( minMap, h, w) = sum;
+	  ELEM0( dst, h , w) = d;
+	}
+
+      }// w
+    }// h
+
+
+    //estimated latent image
     fftw_free( latent[d] );
 
   }//d
