@@ -5,10 +5,10 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
 {
   int h, w;  
   double snr = 0.002;
-  size_t memSize = sizeof(freq)*(img->height * img->width);
-  freq *src = (freq*)fftw_malloc( memSize );
-  freq *filter = (freq*)fftw_malloc( memSize );
-  freq *dbl = (freq*)fftw_malloc( memSize );
+  size_t memSize = sizeof(fftw_complex)*(img->height * img->width);
+  fftw_complex *src = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *filter = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc( memSize );
 
   //window function
   Mat window = hummingWindow( img->height, img->width, psf->height, psf->width);
@@ -85,9 +85,9 @@ IMG* deblurFFTW( IMG* img, IMG* psf)
 
 }
 
-IMG* deblurFFTW2( freq* src, freq* psf, double snr, int height, int width)
+IMG* deblurFFTW2( fftw_complex* src, fftw_complex* psf, double snr, int height, int width)
 {
-  freq* dbl = (freq*)fftw_malloc( sizeof(freq)*height*width );
+  fftw_complex* dbl = (fftw_complex*)fftw_malloc( sizeof(fftw_complex)*height*width );
   fftw_plan plan = fftw_plan_dft_2d( height, width, dbl, dbl, FFTW_BACKWARD, FFTW_ESTIMATE);
   
   //deblur
@@ -133,9 +133,9 @@ IMG* deblurFFTWInvariant( IMG* src,
   double snr = 0.005;
 
   //作業用領域
-  freq *srcFFTW = (freq*)fftw_malloc( sizeof(freq) * arraySize );
-  freq *dstFFTW = (freq*)fftw_malloc( sizeof(freq) * arraySize );
-  freq *psfFFTW[MAX_DISPARITY];
+  fftw_complex *srcFFTW = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * arraySize );
+  fftw_complex *dstFFTW = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * arraySize );
+  fftw_complex *psfFFTW[MAX_DISPARITY];
 
   //結果保存用
   Mat dstMat = matrixAlloc( src->height, src->width );
@@ -173,7 +173,7 @@ IMG* deblurFFTWInvariant( IMG* src,
     //saveImage( tmp, filename);
 
     //malloc psf[disparity] and set zero
-    psfFFTW[disparity] = (freq*)fftw_malloc( sizeof(freq) * arraySize );
+    psfFFTW[disparity] = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * arraySize );
     for( int i = 0; i < arraySize; ++i){
       psfFFTW[disparity][i][0] = 0.0;
       psfFFTW[disparity][i][1] = 0.0;
@@ -342,12 +342,12 @@ IMG* deblurFFTWResize( IMG* img, IMG* psf, double size)
   
   printf("img Array size = %d, psf Array Size = %d\n", (int)imgArrSize, (int)psfArrSize);
 
-  freq* imgF = (freq*)fftw_malloc( sizeof( freq ) * imgArrSize );
-  freq* psfF = (freq*)fftw_malloc( sizeof( freq ) * psfArrSize );
-  freq* dstF = (freq*)fftw_malloc( sizeof( freq ) * imgArrSize );  
+  fftw_complex* imgF = (fftw_complex*)fftw_malloc( sizeof( fftw_complex ) * imgArrSize );
+  fftw_complex* psfF = (fftw_complex*)fftw_malloc( sizeof( fftw_complex ) * psfArrSize );
+  fftw_complex* dstF = (fftw_complex*)fftw_malloc( sizeof( fftw_complex ) * imgArrSize );  
 
   if( !imgF || !psfF ){
-    fprintf(stderr, "error in allocatin freq\n");
+    fprintf(stderr, "error in allocatin fftw_complex\n");
     exit(1);
   }
 

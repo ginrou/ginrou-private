@@ -27,5 +27,4 @@ int parameterCalibration( int argc, char* argv[]);
 IMG* errorCount( IMG* input1, IMG* input2, point stPoint, point edPoint );
 
 
-
 #endif

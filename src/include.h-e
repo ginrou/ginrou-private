@@ -25,7 +25,7 @@
 #define SNR 0.002 
 
 #include <fftw3.h>
-typedef fftw_complex freq; 
+typedef fftw_complex freq;
 
 #include "complex.h"
 #include "imageData.h"
@@ -42,9 +42,5 @@ typedef fftw_complex freq;
 #include "expsystem.h"
 
 #include "depthEstimation.h"
-
-// macros
-#define SQSUM( a, b) ((a)*(a) + (b)*(b))
-#define SQUARE(a) ( (a) * (a) )
 
 #endif 

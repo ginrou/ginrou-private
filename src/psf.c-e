@@ -98,16 +98,16 @@ void makeBlurPSFMatFreq(IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
 }
 
 
-void makeBlurPSFFreq( IMG* aperture, double param[2], freq* dst[MAX_DISPARITY],
+void makeBlurPSFFreq( IMG* aperture, double param[2], fftw_complex* dst[MAX_DISPARITY],
 		     point imgSize, int maxDepth)
 {
   int h, w;
   int height = imgSize.y;
   int width = imgSize.x;
-  size_t memSize = sizeof( freq ) * height * width;
+  size_t memSize = sizeof( fftw_complex ) * height * width;
   
-  freq* img1 = (freq*)fftw_malloc( memSize);
-  freq* img2 = (freq*)fftw_malloc( memSize);
+  fftw_complex* img1 = (fftw_complex*)fftw_malloc( memSize);
+  fftw_complex* img2 = (fftw_complex*)fftw_malloc( memSize);
   fftw_plan plan1 = fftw_plan_dft_2d( height, width, img1, img1, FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_plan plan2 = fftw_plan_dft_2d( height, width, img2, img2, FFTW_FORWARD, FFTW_ESTIMATE);  
   for( int d = 0; d < maxDepth; ++d){
@@ -139,7 +139,7 @@ void makeBlurPSFFreq( IMG* aperture, double param[2], freq* dst[MAX_DISPARITY],
     
     // merge
     double r = size - (int)size;
-    dst[d] = (freq*)fftw_malloc( memSize );
+    dst[d] = (fftw_complex*)fftw_malloc( memSize );
     for( int i = 0 ; i < height* width ; ++i){
       dst[d][i][0] = (1-r) * img1[i][0] + r * img2[i][0];
       dst[d][i][1] = (1-r) * img1[i][1] + r * img2[i][1];
@@ -167,11 +167,11 @@ void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
   int h ,w;
   int height = imgSize.y;
   int width  = imgSize.x;
-  size_t memSize = sizeof( freq ) * height * width ;
+  size_t memSize = sizeof( fftw_complex ) * height * width ;
 
-  freq* img1 = (freq*)fftw_malloc( memSize );
-  freq* img2 = (freq*)fftw_malloc( memSize );
-  freq* result  = (freq*)fftw_malloc( memSize );
+  fftw_complex* img1 = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex* img2 = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex* result  = (fftw_complex*)fftw_malloc( memSize );
   fftw_plan plan1 = fftw_plan_dft_2d( height, width, img1, img1, FFTW_FORWARD, FFTW_ESTIMATE );
   fftw_plan plan2 = fftw_plan_dft_2d( height, width, img2, img2, FFTW_FORWARD, FFTW_ESTIMATE );
   fftw_plan planResult = fftw_plan_dft_2d( height, width, result, result, FFTW_BACKWARD, FFTW_ESTIMATE );
@@ -304,13 +304,13 @@ void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
 }
 
 void makeShiftBlurPSFFreq( int height, int width, int cam,
-			   freq* dst[MAX_DISPARITY],
+			   fftw_complex* dst[MAX_DISPARITY],
 			   IMG* aperture, double param[2] )
 {
   int h, w;
-  size_t memSize = sizeof( freq ) * height * width ;
-  freq* tmp1 = (freq*)fftw_malloc(memSize);
-  freq* tmp2 = (freq*)fftw_malloc(memSize);
+  size_t memSize = sizeof( fftw_complex ) * height * width ;
+  fftw_complex* tmp1 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex* tmp2 = (fftw_complex*)fftw_malloc(memSize);
   fftw_plan plan1 = fftw_plan_dft_2d( height, width, tmp1, tmp1, FFTW_FORWARD, FFTW_ESTIMATE );
   fftw_plan plan2 = fftw_plan_dft_2d( height, width, tmp2, tmp2, FFTW_FORWARD, FFTW_ESTIMATE );
 
@@ -389,7 +389,7 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
     //merge
     double r = size - (int)size;
 
-    dst[disp] = (freq*)fftw_malloc( memSize );
+    dst[disp] = (fftw_complex*)fftw_malloc( memSize );
     for( int i = 0; i < height * width ; ++i){
       dst[disp][i][0] = (1-r) * tmp1[i][0] + r * tmp2[i][0];
       dst[disp][i][1] = (1-r) * tmp1[i][1] + r * tmp2[i][1];
@@ -411,7 +411,7 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
 
 
 
-void PSFCopyForFFTW( const Mat src, freq *dst , point size)
+void PSFCopyForFFTW( const Mat src, fftw_complex *dst , point size)
 {
   // set all element to zero
   for( int i = 0; i < size.y * size.x; ++i) {

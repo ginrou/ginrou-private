@@ -781,10 +781,10 @@ int batch110827( int argc, char* argv[] )
 {
   IMG* img = readImage("img/MBP/110826-1/blurredwin.png");
   IMG* apertureIn = readImage("img/MBP/aperture/Zhou0002.png");
-  size_t memSize = sizeof(freq) * img->height * img->width ;
-  freq *src = (freq*)fftw_malloc(memSize);
-  freq *psf = (freq*)fftw_malloc(memSize);
-  freq *dbl = (freq*)fftw_malloc(memSize);
+  size_t memSize = sizeof(fftw_complex) * img->height * img->width ;
+  fftw_complex *src = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *psf = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc(memSize);
   int h, w;
 
   //copy src
@@ -805,8 +805,8 @@ int batch110827( int argc, char* argv[] )
   flipImage( apertureIn, 1, 1);
   resizeImage( apertureIn, aperture1);
   resizeImage( apertureIn, aperture2);
-  freq *psf1 = (freq*)fftw_malloc(memSize);
-  freq *psf2 = (freq*)fftw_malloc(memSize);
+  fftw_complex *psf1 = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *psf2 = (fftw_complex*)fftw_malloc(memSize);
   
   for(int i = 0; i < img->height * img->width; ++i){
     psf1[i][0] = 0.0;
@@ -898,9 +898,9 @@ int batch110828_1( int argc, char* argv[] ){
   IMG* img      = readImage("img/MBP/110827-1/blurredLeft5.png");
   IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
   IMG* dispMap  = readImage("img/MBP/110827-1/disparityMap5.png");
-  size_t memSize = sizeof(freq) * img->height * img->width ;
-  freq *src = (freq*)fftw_malloc(memSize);
-  freq *dbl = (freq*)fftw_malloc(memSize);
+  size_t memSize = sizeof(fftw_complex) * img->height * img->width ;
+  fftw_complex *src = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc(memSize);
 
   //showDispMap(dispMap);
   //return 0;
@@ -916,14 +916,14 @@ int batch110828_1( int argc, char* argv[] ){
 
   //copy psf
   int kernels = 50;
-  freq *psf[50];
+  fftw_complex *psf[50];
   flipImage( aperture, 0, 1); //0,1
   for( int i = 1; i < kernels; ++i ){
 
     IMG* apIn = createImage( i, i );
     resizeImage( aperture, apIn );
 
-    psf[i] = (freq*)fftw_malloc(memSize);
+    psf[i] = (fftw_complex*)fftw_malloc(memSize);
     for(int n = 0; n < img->height * img->width; ++n){
       psf[i][n][0] = 0.0;
       psf[i][n][1] = 0.0;
@@ -1031,9 +1031,9 @@ int parameterCalibration( int argc, char* argv[])
   IMG* img = readImage("img/MBP/110828-1/blurredRight.png");
   IMG* aperture = readImage("img/MBP/aperture/Zhou0002.png");
   IMG* dispMap = readImage("img/MBP/110828-1/disparityMap.png");
-  size_t memSize = sizeof(freq) * img->height * img->width ;
-  freq *src = (freq*)fftw_malloc(memSize);
-  freq *dbl = (freq*)fftw_malloc(memSize);
+  size_t memSize = sizeof(fftw_complex) * img->height * img->width ;
+  fftw_complex *src = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc(memSize);
 
   //copy src
   for( h = 0; h < img->height ; ++h ){
@@ -1046,14 +1046,14 @@ int parameterCalibration( int argc, char* argv[])
 
   //copy psf
   int kernels = MAX_DISPARITY;
-  freq *psf[MAX_DISPARITY];
+  fftw_complex *psf[MAX_DISPARITY];
   flipImage( aperture, 1, 0); //0,1
   for( int i = 1; i < kernels; ++i ){
 
     IMG* apIn = createImage( i, i );
     resizeImage( aperture, apIn );
 
-    psf[i] = (freq*)fftw_malloc(memSize);
+    psf[i] = (fftw_complex*)fftw_malloc(memSize);
     for(int n = 0; n < img->height * img->width; ++n){
       psf[i][n][0] = 0.0;
       psf[i][n][1] = 0.0;
@@ -1162,7 +1162,7 @@ int batch111018( int argc, char* argv[] )
     IMG *inputLeft, *inputRight;
   IMG *apertureLeft, *apertureRight;
   double paramLeft[2], paramRight[2];
-  freq *psfLeft[MAX_DISPARITY], *psfRight[MAX_DISPARITY];
+  fftw_complex *psfLeft[MAX_DISPARITY], *psfRight[MAX_DISPARITY];
 
   
   char buf[256];

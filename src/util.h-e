@@ -18,19 +18,8 @@
 
 #include "imageData.h"
 
-// 確認用に表示
 void showImage(  const IMG *img, int keyWait);
 void showDispMap( const IMG* img);
-
-// テキストデータを画像に変換
-/*
-  h, w, 輝度値　
-  形式で画素とその輝度値に入っているテキストデータを
-  画像ファイルとして保存
- */
-IMG* textToIMG( char filename[], int height, int width, double scale);
-
-// 計算時間管理
 void startClock(void);
 double getPassedTime(void);
 void printPassedTime(void);

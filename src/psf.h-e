@@ -18,7 +18,7 @@ void makeBlurPSF( IMG* psf[MAX_DISPARITY], IMG* aperture, int maxDepth,  double 
 void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
 		     point imgSize, int maxDepth);
 
-void makeBlurPSFFreq( IMG* aperture, double param[2], freq* dst[MAX_DISPARITY],
+void makeBlurPSFFreq( IMG* aperture, double param[2], fftw_complex* dst[MAX_DISPARITY],
 		     point imgSize, int maxDepth);
 
 
@@ -26,7 +26,7 @@ void makeShiftBlurPSF( Mat psf[MAX_DISPARITY], int cam,
 		       IMG* aperture, double par[2]);
 
 void makeShiftBlurPSFFreq( int height, int width, int cam,
-			   freq* dst[MAX_DISPARITY],
+			   fftw_complex* dst[MAX_DISPARITY],
 			   IMG* aperture, double param[2] );
 
 
@@ -34,7 +34,7 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
 
 // PSFのそのままの形状から、Wienerに適用できるような形にする
 // FFTとかはしない
-void PSFCopyForFFTW( const Mat src, freq *dst, point size);
+void PSFCopyForFFTW( const Mat src, fftw_complex *dst, point size);
 
 // Mat形式のPSFを正規化
 void PSFNormalize( Mat psf );

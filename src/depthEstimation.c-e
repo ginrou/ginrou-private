@@ -1,7 +1,7 @@
 #include "depthEstimation.h"
 
 // utility functions
-void copySrc( const IMG* src, freq* dst)
+void copySrc( const IMG* src, fftw_complex* dst)
 {
   for( int h = 0; h < src->height; ++h){
     for( int w = 0 ;w < src->width; ++w){
@@ -12,7 +12,7 @@ void copySrc( const IMG* src, freq* dst)
   }
 }
 
-void copyDbl(freq* src, Mat dst)
+void copyDbl(fftw_complex* src, Mat dst)
 {
   double scale = dst.row * dst.clm;
   for( int h = 0; h < dst.row; ++h){
@@ -24,7 +24,7 @@ void copyDbl(freq* src, Mat dst)
   }
 }
 
-void wienerCalc( freq* src, freq* psf, freq* dbl, int size)
+void wienerCalc( fftw_complex* src, fftw_complex* psf, fftw_complex* dbl, int size)
 {
   for( int i = 0; i < size; ++i){
     double a = src[i][0];
@@ -61,7 +61,7 @@ IMG* deblurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
 }
 
 
-IMG* latentBaseEstimationIMG( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[])
+IMG* latentBaseEstimationIMG( IMG* left, IMG* right, fftw_complex* psfLeft[], fftw_complex* psfRight[])
 {
   Mat result = latentBaseEstimationMat( left, right, psfLeft, psfRight );
   IMG* dst = createImage( result.row, result.clm);
@@ -147,10 +147,10 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
   Mat dblLeft[MAX_DISPARITY], dblRight[MAX_DISPARITY];
   
   // set up of FFTW
-  size_t memSize = sizeof(freq) * ( left->height * left->width );
-  freq *img = (freq*) fftw_malloc ( memSize );
-  freq *filter = (freq*) fftw_malloc ( memSize );
-  freq *dbl = (freq*)fftw_malloc ( memSize );
+  size_t memSize = sizeof(fftw_complex) * ( left->height * left->width );
+  fftw_complex *img = (fftw_complex*) fftw_malloc ( memSize );
+  fftw_complex *filter = (fftw_complex*) fftw_malloc ( memSize );
+  fftw_complex *dbl = (fftw_complex*)fftw_malloc ( memSize );
   fftw_plan srcFFTPlan = fftw_plan_dft_2d( height, width, img, img , 
 					   FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_plan psfFFTPlan = fftw_plan_dft_2d( height, width,filter, filter, 
@@ -242,16 +242,16 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
 }
 
 
-Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[])
+Mat latentBaseEstimationMat( IMG* left, IMG* right, fftw_complex* psfLeft[], fftw_complex* psfRight[])
 {
   int h, w;
   int height = left->height;
   int width  = left->width;
 
-  size_t memSize = sizeof( freq ) * height * width ;
-  freq *capLeft = (freq*)fftw_malloc( memSize );
-  freq *capRight = (freq*)fftw_malloc( memSize ); 
-  freq *latent[MAX_DISPARITY];
+  size_t memSize = sizeof( fftw_complex ) * height * width ;
+  fftw_complex *capLeft = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *capRight = (fftw_complex*)fftw_malloc( memSize ); 
+  fftw_complex *latent[MAX_DISPARITY];
 
   // FFT of captured images
   copySrc( left, capLeft );
@@ -269,7 +269,7 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
   for( int d = 0; d < MAX_DISPARITY; ++d){
 
     // compute latent image
-    latent[d] = (freq*)fftw_malloc( memSize );
+    latent[d] = (fftw_complex*)fftw_malloc( memSize );
     for( int i = 0; i < height * width; ++i){
 
       double fLr = psfLeft[d][i][0];
@@ -288,7 +288,7 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
 
     // debug : save latent image
     char filename[256];
-    freq *debugRegion = (freq*)fftw_malloc( memSize );
+    fftw_complex *debugRegion = (fftw_complex*)fftw_malloc( memSize );
     fftw_plan planDebug = fftw_plan_dft_2d( height, width, latent[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
     fftw_execute( planDebug );
     IMG* debugImage = createImage( height, width );
@@ -309,8 +309,8 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
 
   // compute residual and estiamte depth
   Mat residMap = matrixAlloc( height, width);
-  freq *residMapLeft = (freq*)fftw_malloc( memSize );
-  freq *residMapRight = (freq*)fftw_malloc( memSize );
+  fftw_complex *residMapLeft = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *residMapRight = (fftw_complex*)fftw_malloc( memSize );
   fftw_plan residLeftPlan = fftw_plan_dft_2d( height, width, 
 					      residMapLeft, residMapLeft,
 					      FFTW_BACKWARD, FFTW_ESTIMATE);

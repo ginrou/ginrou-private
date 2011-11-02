@@ -1,0 +1,16 @@
+#include <stdio.h>
+#include "include.h"
+
+#include <cv.h>
+
+int main(int argc, char* argv[])
+{
+
+  printf("%d\n", fabs(10)&&1);
+  return 0;
+
+  setbuf( stdout, NULL); // 改行をまたないように
+
+
+}
+

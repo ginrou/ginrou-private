@@ -59,28 +59,6 @@ void mouse(int event, int x, int y, int flags, void *param)
 }
 
 
-// テキストデータを画像に変換
-IMG* textToIMG( char filename[], int height, int width, double scale)
-{
-  FILE* fp = fopen( filename, "r" );
-  if( fp == NULL ) return NULL;
-
-  IMG* dst = createImage( height, width );
-  char buf[256];
-  while( fgets( buf, 256, fp ) != NULL ){
-    int h, w;
-    double val;
-    if( isdigit(buf[0]) == 0 ) continue;
-    sscanf( buf, "%d, %d, %lf", &h, &w, &val );
-    if( h < 0 || h >= height || w < 0 || w >= width ) continue;
-    IMG_ELEM( dst, h, w) = scale * val;
-  }
-
-  fclose(fp);
-  return dst;
-
-}
-
 
 //処理時間計測用
 struct timeval tv;

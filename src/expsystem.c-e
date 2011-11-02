@@ -239,14 +239,14 @@ IMG* CodedAperturePairDispmap2
   int h, w;
   int height = srcLeft->height;
   int width  = srcLeft->width;
-  size_t memSize = sizeof(freq) * height * width;
+  size_t memSize = sizeof(fftw_complex) * height * width;
 
   int maxSize = abs(maxDepth * param[0] + param[1]);
   if( maxSize < abs(param[1]) ) maxSize = abs(param[1]);
 
   // src画像のFFT
-  freq *Left = (freq*)fftw_malloc( memSize );
-  freq *Right = (freq*)fftw_malloc( memSize );
+  fftw_complex *Left = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *Right = (fftw_complex*)fftw_malloc( memSize );
   
   // copy and windowfunction
   for(h=0;h<height;++h){
@@ -284,8 +284,8 @@ IMG* CodedAperturePairDispmap2
 
 
   // PSFのFFT
-  freq* LeftPSF[MAX_DISPARITY];
-  freq* RightPSF[MAX_DISPARITY];
+  fftw_complex* LeftPSF[MAX_DISPARITY];
+  fftw_complex* RightPSF[MAX_DISPARITY];
   fftw_plan planLeftPSF[MAX_DISPARITY];
   fftw_plan planRightPSF[MAX_DISPARITY];
 
@@ -295,8 +295,8 @@ IMG* CodedAperturePairDispmap2
   makeBlurPSF( rightPSFImg, apertureRight, maxDepth, param );
 
   for( int d = 0 ; d < maxDepth; ++d){
-    LeftPSF[d] = (freq*)fftw_malloc(memSize);
-    RightPSF[d] = (freq*)fftw_malloc(memSize);
+    LeftPSF[d] = (fftw_complex*)fftw_malloc(memSize);
+    RightPSF[d] = (fftw_complex*)fftw_malloc(memSize);
 
     double leftSum = 0.0;
     double rightSum = 0.0;
@@ -347,11 +347,11 @@ IMG* CodedAperturePairDispmap2
   printf("fft done\n");
 
   // ぼけ除去画像の作成
-  freq* DblLeft[MAX_DISPARITY];
-  freq* DblRight[MAX_DISPARITY];
+  fftw_complex* DblLeft[MAX_DISPARITY];
+  fftw_complex* DblRight[MAX_DISPARITY];
   for( int d = 0; d < maxDepth; ++d){
-    DblLeft[d] = (freq*)fftw_malloc(memSize);
-    DblRight[d] = (freq*)fftw_malloc(memSize);
+    DblLeft[d] = (fftw_complex*)fftw_malloc(memSize);
+    DblRight[d] = (fftw_complex*)fftw_malloc(memSize);
 
     for( h = 0 ; h < height; ++h){
       for( w = 0; w < width; ++w){
@@ -380,8 +380,8 @@ IMG* CodedAperturePairDispmap2
   printf("deblurring done\n");
   
   Mat residualMap[MAX_DISPARITY];
-  freq* rMapLeft = (freq*)fftw_malloc(memSize);
-  freq* rMapRight = (freq*)fftw_malloc(memSize);
+  fftw_complex* rMapLeft = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex* rMapRight = (fftw_complex*)fftw_malloc(memSize);
   fftw_plan planRmapLeft = fftw_plan_dft_2d( height, width, rMapLeft, rMapLeft, FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_plan planRmapRight = fftw_plan_dft_2d( height, width, rMapRight, rMapRight, FFTW_BACKWARD, FFTW_ESTIMATE);
  
@@ -476,14 +476,14 @@ IMG* currentSystemDispmap2
   int h, w;
   int height = srcLeft->height;
   int width  = srcLeft->width;
-  size_t memSize = sizeof(freq) * height * width;
+  size_t memSize = sizeof(fftw_complex) * height * width;
 
   int maxSize = abs(maxDisparity * param[0][0] + param[0][1]);
   if( maxSize < abs(param[0][1]) ) maxSize = abs(param[0][1]);
 
   // src画像のFFT
-  freq *Left = (freq*)fftw_malloc( memSize );
-  freq *Right = (freq*)fftw_malloc( memSize );
+  fftw_complex *Left = (fftw_complex*)fftw_malloc( memSize );
+  fftw_complex *Right = (fftw_complex*)fftw_malloc( memSize );
   
   // copy and windowfunction
   for(h=0;h<height;++h){
@@ -521,8 +521,8 @@ IMG* currentSystemDispmap2
 
 
   // PSFのFFT
-  freq* LeftPSF[MAX_DISPARITY];
-  freq* RightPSF[MAX_DISPARITY];
+  fftw_complex* LeftPSF[MAX_DISPARITY];
+  fftw_complex* RightPSF[MAX_DISPARITY];
   fftw_plan planLeftPSF[MAX_DISPARITY];
   fftw_plan planRightPSF[MAX_DISPARITY];
 
@@ -541,8 +541,8 @@ IMG* currentSystemDispmap2
     convertMat2IMG( &(rightPSFMat[d]), rightPSFImg[d] );
 
 
-    LeftPSF[d] = (freq*)fftw_malloc(memSize);
-    RightPSF[d] = (freq*)fftw_malloc(memSize);
+    LeftPSF[d] = (fftw_complex*)fftw_malloc(memSize);
+    RightPSF[d] = (fftw_complex*)fftw_malloc(memSize);
 
     double leftSum = 0.0;
     double rightSum = 0.0;
@@ -593,11 +593,11 @@ IMG* currentSystemDispmap2
   printf("fft done\n");
 
   // ぼけ除去画像の作成
-  freq* DblLeft[MAX_DISPARITY];
-  freq* DblRight[MAX_DISPARITY];
+  fftw_complex* DblLeft[MAX_DISPARITY];
+  fftw_complex* DblRight[MAX_DISPARITY];
   for( int d = 0; d < maxDisparity; ++d){
-    DblLeft[d] = (freq*)fftw_malloc(memSize);
-    DblRight[d] = (freq*)fftw_malloc(memSize);
+    DblLeft[d] = (fftw_complex*)fftw_malloc(memSize);
+    DblRight[d] = (fftw_complex*)fftw_malloc(memSize);
 
     for( h = 0 ; h < height; ++h){
       for( w = 0; w < width; ++w){
@@ -626,8 +626,8 @@ IMG* currentSystemDispmap2
   printf("deblurring done\n");
   
   Mat residualMap[MAX_DISPARITY];
-  freq* rMapLeft = (freq*)fftw_malloc(memSize);
-  freq* rMapRight = (freq*)fftw_malloc(memSize);
+  fftw_complex* rMapLeft = (fftw_complex*)fftw_malloc(memSize);
+  fftw_complex* rMapRight = (fftw_complex*)fftw_malloc(memSize);
   fftw_plan planRmapLeft = fftw_plan_dft_2d( height, width, rMapLeft, rMapLeft, FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_plan planRmapRight = fftw_plan_dft_2d( height, width, rMapRight, rMapRight, FFTW_BACKWARD, FFTW_ESTIMATE);
  
