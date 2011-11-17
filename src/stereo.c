@@ -109,11 +109,12 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
     //小さい視差での結果を得る
     IMG* dispMin = stereoRecursive( minLeft, minRight, &minFund, 
 				    maxDisparity/2, minDisparity);
-    
-    char filename[256];
-    sprintf(filename,"img/dispMap%03d-%3d.png",dispMin->height, dispMin->width);
-    saveImage( dispMin, filename);
 
+    if( saveDebugImages == YES ){
+      char filename[256];
+      sprintf(filename,"%s/dispMap%03d-%3d.png",tmpImagesDir,dispMin->height, dispMin->width);
+      saveImage( dispMin, filename);
+    }
 
     //小さい視差での結果を受けて次のサイズの物を計算
     IMG* dst = stereoNextDisparityMap( srcLeft, srcRight, FundMat,
@@ -207,8 +208,6 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
   matrixFree(pt1);
   matrixFree(pt2);
 
-  saveImage( initDispMap, "img/initialMap.png");
-
   return initDispMap;
 
 }
@@ -230,10 +229,10 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       printf("srcRight-> %d * %d\n return NULL \n", srcRight->width , srcRight->height);
       return NULL;
     }
-
+  /*
   printf("stereo next disparity map : previous size = %d, %d next size = %d, %d\n",
 	 prevDispMap->height, prevDispMap->width, nextHeight, nextWidth);
-
+  */
 
   //視差マップ( prevDispmap )をコンバート
   IMG* dispMap = createImage( nextHeight, nextWidth );

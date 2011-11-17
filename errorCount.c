@@ -4,18 +4,20 @@
 #include <cv.h>
 
 /*
-  一つ目の引数の画像と二つ目の引数の画像の二乗誤差を取る
-  結果は三つ目の引数のファイル名で出力される
-  誤差を計測する範囲(ROI)はこの中で定義する。→別に引数としてもいいけど　
-  平均エラーとその分散はプリントされる
+  args
+  argv[1] : ground truth image
+  argv[2] : analyze objective
+  argv[3] : output file name (png image )
+  argv[4] : start height to analyze
+  argv[5] : start width to analyze
+  argv[6] : end height point to analyze
+  argv[7] : end width point to analyze
  */
 
-#define startHeight 50
-#define endHeight 450
-#define startWidth 150
-#define endWidth 350
-
-
+#define START_HEIGHT 50
+#define END_HEIGHT 450
+#define START_WIDTH 150
+#define END_WIDTH 350
 
 int main(int argc, char* argv[]){
   
@@ -30,9 +32,22 @@ int main(int argc, char* argv[]){
   
   IMG* errorMap = createImage( input1->height, input1->width);
   convertScaleImage( errorMap, errorMap, 0.0, 0.0 );
+
+  int startHeight = START_HEIGHT;
+  int startWidth  = START_WIDTH;
+  int endHeight   = END_HEIGHT;
+  int endWidth    = END_WIDTH;
+
+  if( argc >= 4 ){
+    startHeight = atoi( argv[4] );
+    startWidth  = atoi( argv[5] );
+    endHeight   = atoi( argv[6] );
+    endWidth    = atoi( argv[7] );
+  }
   
   int h, w;
   double scale = (endHeight-startHeight)*(endWidth-startWidth);
+  int count = 0;
   // fill error map and calc mean
   double mean = 0.0;
   for( h = startHeight; h < endHeight; ++h){
@@ -41,6 +56,7 @@ int main(int argc, char* argv[]){
       int val2 = IMG_ELEM( input2, h, w);
       mean += SQUARE( val1 - val2 );
       IMG_ELEM( errorMap, h, w) = SQUARE( val1-val2 );
+      if(fabs(val1-val2) >= 1) count++;
     }
   }
   mean /= scale;
@@ -59,6 +75,8 @@ int main(int argc, char* argv[]){
   saveImage( errorMap, argv[3] );
   printf("mean : %lf\n", mean);
   printf("variance : %lf\n", var);
+  printf("count = %d, error rate = %lf\n", count, (double)count/scale);
+
 
   return 0;
 

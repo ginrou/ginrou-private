@@ -10,13 +10,8 @@
 #include <imageProcessing.h>
 #include <util.h>
 
-#define MATCHING_BLOCK_SIZE  ( maxDisparity )
+#define MATCHING_BLOCK_SIZE  ( 7 )
 
-typedef struct point{
-  int x;
-  int y;
-}point;
-point Point(int x, int y);
 
 
 IMG* stereoRecursive( IMG_COL* srcLeft, 

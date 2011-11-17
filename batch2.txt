@@ -1,9 +1,0 @@
-exp/img2-left.png
-exp/img2-right.png
-exp/circle.png
-exp/circle.png
-1.2500 -13.542652
-1.2500 -9.092075
-0
-1
-exp/dispmap2.png

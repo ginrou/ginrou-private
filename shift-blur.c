@@ -1,13 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "include.h"
-
 
 int main( int argc, char* argv[]){
 
-  showDispMap( readImage( argv[1] ));
-  return 0;
 
   printf("shit-blur psf model depth estimation\n");
 
@@ -38,7 +32,16 @@ int main( int argc, char* argv[]){
   printf( "parameter left = %lf , %lf\n", paramLeft[0], paramLeft[1]);
   printf( "parameter right = %lf , %lf\n", paramRight[0], paramRight[1]);
 
-  
+  // save images to debug directry (dirname : argv[argc-2] )
+  if( isalpha( argv[argc-2][0] )){
+    strcpy( tmpImagesDir, argv[argc-2] ); 
+    saveDebugImages = YES;
+  }else{
+    saveDebugImages = NO;
+  }
+
+  printf("save result at %s\n", argv[argc-1]);
+
   /*----------------------------------------*/
   /*           make psf in freq             */
   /*----------------------------------------*/
@@ -54,10 +57,10 @@ int main( int argc, char* argv[]){
   /*----------------------------------------*/
   /*           depth estimation             */
   /*----------------------------------------*/
-  IMG* dst = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
-  saveImage( dst, argv[9] );
+  //IMG* dst = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  IMG* dst = deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight );
 
-
+  saveImage( dst, argv[argc-1] );
     
   return 0;
 }

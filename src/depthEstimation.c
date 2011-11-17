@@ -19,7 +19,7 @@ void copyDbl(freq* src, Mat dst)
     for( int w = 0; w < dst.clm; ++w){
       int idx = h * dst.clm + w;
       double val = src[idx][0]*src[idx][0] + src[idx][1]*src[idx][1];
-      ELEM0( dst, h, w ) = sqrt( val * val ) / scale;
+      ELEM0( dst, h, w ) = sqrt( val ) / scale;
     }
   }
 }
@@ -60,6 +60,13 @@ IMG* deblurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[
   return dst;  
 }
 
+IMG* deblurBaseEstimationIMGFreq(IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]){
+  Mat result = deblurBaseEstimationMatFreq( left, right, psfLeft, psfRight );
+  IMG *dst = createImage( result.row, result.clm );
+  convertMat2IMG( &result, dst );
+  matrixFree(result);
+  return dst;
+}
 
 IMG* latentBaseEstimationIMG( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[])
 {
@@ -241,6 +248,106 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
   return dst;
 }
 
+Mat deblurBaseEstimationMatFreq(IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[])
+{
+  int h, w;
+  int height = left->height;
+  int width = left->width;
+  size_t memSize = sizeof( freq ) * height * width ;
+  freq *capLeft  = (freq*)fftw_malloc( memSize );
+  freq *capRight = (freq*)fftw_malloc( memSize ); 
+  freq* tmpDbl   = (freq*)fftw_malloc( memSize ); 
+  Mat dblLeft[MAX_DISPARITY], dblRight[MAX_DISPARITY];
+
+
+  // FFT of captured images
+  copySrc( left, capLeft );
+  copySrc( right, capRight );
+  fftw_plan capLeftPlan = fftw_plan_dft_2d( height, width, capLeft, capLeft,
+					    FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan capRightPlan = fftw_plan_dft_2d( height, width, capRight, capRight,
+					    FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute( capLeftPlan );
+  fftw_execute( capRightPlan );
+  fftw_destroy_plan( capLeftPlan );
+  fftw_destroy_plan( capRightPlan );
+
+  // compute deblurred image
+  fftw_plan dblPlan = fftw_plan_dft_2d( height, width, tmpDbl, tmpDbl, 
+					FFTW_BACKWARD, FFTW_ESTIMATE);
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+
+    wienerCalc( capLeft, psfLeft[d], tmpDbl, height*width );
+    fftw_execute( dblPlan);
+    dblLeft[d] = matrixAlloc( height, width );
+    copyDbl( tmpDbl, dblLeft[d] );
+
+    wienerCalc( capRight, psfRight[d], tmpDbl, height*width );
+    fftw_execute( dblPlan );
+    dblRight[d] = matrixAlloc( height, width );
+    copyDbl( tmpDbl, dblRight[d] );
+  }
+
+  // debug : save image
+  if( saveDebugImages == YES ){
+    char filename[256];
+    IMG* img = createImage( height, width);
+    for(int d = 0; d < MAX_DISPARITY; ++d){
+      convertMat2IMG( &dblLeft[d], img );
+      sprintf( filename, "%s/deblur-left%02d.png", tmpImagesDir, d );
+      saveImage( img, filename );
+
+      convertMat2IMG( &dblRight[d], img );
+      sprintf( filename, "%s/deblur-right%02d.png", tmpImagesDir, d );
+      saveImage( img, filename );
+    }
+    releaseImage( &img );
+  }
+
+  // depth estimation 
+  Mat dst = matrixAlloc( height, width );
+  for( h = 0; h < height; ++h){
+    for( w = 0; w < width; ++w){
+      double min = DBL_MAX;
+      double minDisp, val;
+
+      for(int d = 0; d < MAX_DISPARITY; ++d){
+	double resid = 0.0;
+
+	for( int y = 0; y < WINDOW_SIZE; ++y){
+	  for( int x = 0; x < WINDOW_SIZE; ++x){
+	    if( y+h >= height || w+x >= width ){ 
+	      continue;
+	    }else{
+	      val = ELEM0( dblLeft[d], h+y, w+x ) - ELEM0( dblRight[d], h+y, w+x );
+	      resid += val*val;
+	    }// else
+	  }// x
+	}//y
+	if( resid < min ){
+	  min = resid; minDisp = d;
+	}
+      }//d
+
+      ELEM0( dst, h, w ) = minDisp;
+
+    }// w
+  }//h
+
+  // clean up
+  for( int d = 0; d< MAX_DISPARITY; ++d){
+    matrixFree( dblLeft[d] );
+    matrixFree( dblRight[d] );
+  }
+
+  fftw_free( capLeft );
+  fftw_free( capRight );
+  fftw_free( tmpDbl );
+  fftw_destroy_plan( dblPlan );
+  return dst;
+}
+
+
 
 Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[])
 {
@@ -265,7 +372,7 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
   fftw_destroy_plan( capLeftPlan );
   fftw_destroy_plan( capRightPlan );
 
-  // FFT of PSF and compute latent image
+  // compute latent image
   for( int d = 0; d < MAX_DISPARITY; ++d){
 
     // compute latent image
@@ -287,22 +394,23 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
     }
 
     // debug : save latent image
-    char filename[256];
-    freq *debugRegion = (freq*)fftw_malloc( memSize );
-    fftw_plan planDebug = fftw_plan_dft_2d( height, width, latent[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_execute( planDebug );
-    IMG* debugImage = createImage( height, width );
-    double scale = height*width;
-    for( h = 0; h < height; ++h){
-      for( w = 0 ; w < width; ++w){
-	int i = h*width+w;
-	double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
-	IMG_ELEM( debugImage, h, w) = sqrt(hoge) / scale;
+    if(saveDebugImages == YES){
+      char filename[256];
+      freq *debugRegion = (freq*)fftw_malloc( memSize );
+      fftw_plan planDebug = fftw_plan_dft_2d( height, width, latent[d], debugRegion, FFTW_BACKWARD, FFTW_ESTIMATE);
+      fftw_execute( planDebug );
+      IMG* debugImage = createImage( height, width );
+      double scale = height*width;
+      for( h = 0; h < height; ++h){
+	for( w = 0 ; w < width; ++w){
+	  int i = h*width+w;
+	  double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
+	  IMG_ELEM( debugImage, h, w) = sqrt(hoge) / scale;
+	}
       }
+      sprintf(filename, "%s/latent%02d.png", tmpImagesDir, d);
+      saveImage( debugImage, filename );
     }
-    sprintf(filename, "test/latent%02d.png", d);
-    saveImage( debugImage, filename );
-
     // debug zone end
 
   }
@@ -328,7 +436,7 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
   }
 
 
-  // loop of d
+  // loop of disparity
   for( int d = 0 ; d < MAX_DISPARITY; ++d){
     
     // calc resid

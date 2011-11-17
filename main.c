@@ -7,12 +7,9 @@ int main(int argc, char* argv[])
 {
   setbuf( stdout, NULL); // 改行をまたないように
 
-  IMG_COL* input = readImageColor(argv[1]);
-  IMG* psf = readImage( argv[2] );
-  IMG_COL* out = createImageColor( input->height, input->width);
-  for(int c = 0; c < 3; ++c)
-    out->channel[c] = blur( input->channel[c], psf );
-  saveImageColor( out, argv[3] );
+
+  showDispMap( readImage(argv[1]));
+
   return 0;
 
 

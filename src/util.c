@@ -70,7 +70,7 @@ IMG* textToIMG( char filename[], int height, int width, double scale)
   while( fgets( buf, 256, fp ) != NULL ){
     int h, w;
     double val;
-    if( isdigit(buf[0]) == 0 ) continue;
+    if( isdigit( (int)(buf[0]) ) == 0 ) continue;
     sscanf( buf, "%d, %d, %lf", &h, &w, &val );
     if( h < 0 || h >= height || w < 0 || w >= width ) continue;
     IMG_ELEM( dst, h, w) = scale * val;

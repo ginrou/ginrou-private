@@ -7,16 +7,8 @@
 #ifndef __UTIL__
 #define __UTIL__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <sys/time.h>
 
-
-#include <cv.h>
-#include <highgui.h>
-
-#include "imageData.h"
+#include "include.h"
 
 // 確認用に表示
 void showImage(  const IMG *img, int keyWait);

@@ -3,6 +3,10 @@
  *****************************************/
 #include "imageData.h"
 
+char tmpImagesDir[256];
+int saveDebugImages;
+
+
 IMG* readImage( char* filename )
 {
   printf("readImage : filename = %s \n", filename);

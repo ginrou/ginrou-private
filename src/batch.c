@@ -1159,7 +1159,7 @@ int parameterCalibration( int argc, char* argv[])
 
 int batch111018( int argc, char* argv[] )
 {
-    IMG *inputLeft, *inputRight;
+  IMG *inputLeft, *inputRight;
   IMG *apertureLeft, *apertureRight;
   double paramLeft[2], paramRight[2];
   freq *psfLeft[MAX_DISPARITY], *psfRight[MAX_DISPARITY];

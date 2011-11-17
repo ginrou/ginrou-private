@@ -6,9 +6,12 @@ SRC_DIR = src
 INCLUDE_DIR = src
 LIB_DIR = lib
 
-MAINFILE = test.c
+MAINFILE = errorCount.c
 TARGET = ${MAINFILE:.c=.out}
-SRCS = ${MAINFILE} imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c 	blur.c deblur2.c batch.c psf.c expsystem.c depthEstimation.c
+ANOTHER_SRC = imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c  blur.c deblur2.c batch.c psf.c expsystem.c depthEstimation.c 
+ANOTHER_OBJS := ${ANOTHER_SRC:.c=.o}
+ANOTHER_OBJS := ${addprefix ${OBJ_DIR}/, ${ANOTHER_OBJS}}
+SRCS = ${MAINFILE} ${ANOTHER_SRC}
 OBJS := ${SRCS:.c=.o}
 OBJS := ${addprefix ${OBJ_DIR}/, ${OBJS}}
 INCLUDE_HEADER = ${INCLUDE_DIR}/include.h
@@ -54,5 +57,36 @@ ${OBJ_DIR}/%.o:${SRC_DIR}/%.c ${INCLUDE_HEADER} ${SRC_DIR}/%.h
 	${CC} $<  ${CFLAGS} -c -o $@  ${DEBUG} ${CVFLAGS}
 
 
+#色々な奥行き推定プログラムのmakeルール
+BATCH_DIR = batch
+shift-blur.out:${$@:.out=.c} ${ANOTHER_OBJS}
+	${CC} $*.c  ${CFLAGS} -c -o $*.o  ${DEBUG} ${CVFLAGS}	
+	${CC} ${CFLAGS} -o $@  ${DEBUG} ${CVLIBS} ${CLIBFLAGS} ${ANOTHER_OBJS} $*.o
+	mv $@ ${BATCH_DIR}
+
+stereoDepthEstimation.out:${$@:.out=.c} ${ANOTHER_OBJS}
+	${CC} $*.c  ${CFLAGS} -c -o $*.o  ${DEBUG} ${CVFLAGS}	
+	${CC} ${CFLAGS} -o $@  ${DEBUG} ${CVLIBS} ${CLIBFLAGS} ${ANOTHER_OBJS} $*.o
+	mv $@ ${BATCH_DIR}
+
+DepthFromDefocus.out:${$@:.out=.c} ${ANOTHER_OBJS}
+	${CC} $*.c  ${CFLAGS} -c -o $*.o  ${DEBUG} ${CVFLAGS}	
+	${CC} ${CFLAGS} -o $@  ${DEBUG} ${CVLIBS} ${CLIBFLAGS} ${ANOTHER_OBJS} $*.o
+	mv $@ ${BATCH_DIR}
+
+CodedAperturePair.out:${$@:.out=.c} ${ANOTHER_OBJS}
+	${CC} $*.c  ${CFLAGS} -c -o $*.o  ${DEBUG} ${CVFLAGS}	
+	${CC} ${CFLAGS} -o $@  ${DEBUG} ${CVLIBS} ${CLIBFLAGS} ${ANOTHER_OBJS} $*.o
+	mv $@ ${BATCH_DIR}
+
+#実験システム全部まとめて
+.PHONY:exp
+exp:
+	make shift-blur.out
+	make stereoDepthEstimation.out
+	make DepthFromDefocus.out
+	make CodedAperturePair.out
+
+.PHONY:clean
 clean:
 	rm -f ${TARGET} ${OBJS}

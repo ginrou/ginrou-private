@@ -1,9 +1,0 @@
-exp/img4-left.png
-exp/img4-right.png
-exp/CAPair1.png
-exp/CAPair2.png
-1.2500 -13.542652
-1.2500 -13.542652
-0
-1
-exp/dispmap4.png

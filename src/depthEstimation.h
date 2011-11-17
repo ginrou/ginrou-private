@@ -37,10 +37,12 @@
 
 IMG* blurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);
 IMG* deblurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);
+IMG* deblurBaseEstimationIMGFreq(IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
 IMG* latentBaseEstimationIMG( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
 
 Mat blurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);
 Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);
+Mat deblurBaseEstimationMatFreq(IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
 Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
 
 
