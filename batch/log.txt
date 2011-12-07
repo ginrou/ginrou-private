@@ -1,0 +1,137 @@
+expB
+readImage : filename = expB/disparityMap.png 
+[2KreadImage : filename = expB/disparityMap.png 
+[2KexpB/error1.png is saved
+mean : 0.000000
+variance : 0.000000
+count = 0, error rate = 0.000000
+
+
+readImage : filename = expB/disparityMap.png 
+[2KreadImage : filename = expB/disparityMap1.png 
+[2KexpB/error2.png is saved
+mean : 0.170464
+variance : 0.429058
+count = 827, error rate = 0.023971
+
+
+readImage : filename = expB/disparityMap.png 
+[2KreadImage : filename = expB/disparityMap2.png 
+[2KexpB/error3.png is saved
+mean : 0.853159
+variance : 0.867887
+count = 1135, error rate = 0.032899
+
+
+readImage : filename = expB/disparityMap.png 
+[2KreadImage : filename = expB/disparityMap3.png 
+[2KexpB/error4.png is saved
+mean : 7.426928
+variance : 76.240544
+count = 14407, error rate = 0.417594
+
+
+readImage : filename = expB/disparityMap.png 
+[2KreadImage : filename = expB/disparityMap4.png 
+[2KexpB/error5.png is saved
+mean : 10.004841
+variance : 260.487832
+count = 17290, error rate = 0.501159
+
+
+
+
+
+
+expC
+readImage : filename = expC/disparityMap.png 
+[2KreadImage : filename = expC/disparityMap.png 
+[2KexpC/error1.png is saved
+mean : 0.000000
+variance : 0.000000
+count = 0, error rate = 0.000000
+
+
+readImage : filename = expC/disparityMap.png 
+[2KreadImage : filename = expC/disparityMap1.png 
+[2KexpC/error2.png is saved
+mean : 0.241855
+variance : 0.710318
+count = 1515, error rate = 0.043913
+
+
+readImage : filename = expC/disparityMap.png 
+[2KreadImage : filename = expC/disparityMap2.png 
+[2KexpC/error3.png is saved
+mean : 0.879333
+variance : 0.673411
+count = 1501, error rate = 0.043507
+
+
+readImage : filename = expC/disparityMap.png 
+[2KreadImage : filename = expC/disparityMap3.png 
+[2KexpC/error4.png is saved
+mean : 7.927449
+variance : 70.338997
+count = 16609, error rate = 0.481420
+
+
+readImage : filename = expC/disparityMap.png 
+[2KreadImage : filename = expC/disparityMap4.png 
+[2KexpC/error5.png is saved
+mean : 4.139652
+variance : 25.144149
+count = 12748, error rate = 0.369507
+
+
+
+
+
+
+expD
+readImage : filename = expD/disparityMap.png 
+[2KreadImage : filename = expD/disparityMap.png 
+[2KexpD/error1.png is saved
+mean : 0.000000
+variance : 0.000000
+count = 0, error rate = 0.000000
+
+
+readImage : filename = expD/disparityMap.png 
+[2KreadImage : filename = expD/disparityMap1.png 
+[2KexpD/error2.png is saved
+mean : 1.193333
+variance : 1.689289
+count = 5520, error rate = 0.160000
+
+
+readImage : filename = expD/disparityMap.png 
+[2KreadImage : filename = expD/disparityMap2.png 
+[2KexpD/error3.png is saved
+mean : 133.513826
+variance : 2281.778678
+count = 34260, error rate = 0.993043
+
+
+readImage : filename = expD/disparityMap.png 
+[2KreadImage : filename = expD/disparityMap3.png 
+[2KexpD/error4.png is saved
+mean : 1.955565
+variance : 2.599852
+count = 11697, error rate = 0.339043
+
+
+readImage : filename = expD/disparityMap.png 
+[2KreadImage : filename = expD/disparityMap4.png 
+[2KexpD/error5.png is saved
+mean : 0.758580
+variance : 0.903137
+count = 920, error rate = 0.026667
+
+
+
+
+
+
+analyze done
+

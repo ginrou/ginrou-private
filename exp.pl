@@ -17,38 +17,41 @@ foreach (@jpgFiles) {
 }
 
 closedir DIR;
-
-
 print "@jpgFiles\n";
 
-$apLeft = 'Zhou2011.png';
-$apRight = 'Zhou2011.png';
 
-@pL = qw\0.25 0.0\;
-@pR = qw\0.25 0.0\;
-$debugDir = 'debugImages';
-$dispmap = 'DisparityMap.png';
-$deblurred = 'deblurred.png';
+for (1..2) {
+  $inRight = pop @jpgFiles;
+  $inLeft = pop @jpgFiles;
+  $apLeft = 'Zhou2011.png';
+  $apRight = 'Zhou2011.png';
+  @pL = qw\0.25 0.0\;
+  @pR = qw\0.25 0.0\;
+  $debugDir = "debugImages$_";
+  mkdir( $dir.$debugDir ,0755) unless( -d $dir.$debugDir );
+  $dispmap = 'DisparityMap.png';
+  $deblurred = 'deblurred.png';
+  @args = ();
+  push @args, $inLeft;
+  push @args, $inRight;
+  push @args, $apLeft;
+  push @args, $apRight;
+  push @args, @pL;
+  push @args, @pR;
+  push @args, $dir.$debugDir;
+  push @args, $dispmap;
+  push @args, $deblurred;
 
-@args = ();
-push @args, $jpgFiles[1];
-push @args, $jpgFiles[0];
-push @args, $apLeft;
-push @args, $apRight;
-push @args, @pL;
-push @args, @pR;
-push @args, $dir.$debugDir;
-push @args, $dispmap;
-push @args, $deblurred;
 
+  print "input arguments are \n";
+  @newArgs = ();
+  foreach (@args) {
+    $_ = $dir.$_ if(/.*\.[a-zA-z]/);
+    push @newArgs, $_;
+    print "$_\n";
+  }
 
-print "input arguments are \n";
-@newArgs = ();
-foreach (@args) {
-  $_ = $dir.$_ if(/.*\.[a-zA-z]/);
-  push @newArgs, $_;
-  print "$_\n";
+  chdir "../" or die "$!";
+  system("./main.out @newArgs");
+
 }
-
-chdir "../" or die "$!";
-system("./main.out @newArgs");
