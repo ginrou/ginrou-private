@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
   double paramLeft[2], paramRight[2];
   paramLeft[0] = atof( argv[5] );
   paramLeft[1] = atof( argv[6] );
-  paramRight[0] = atof( argv[6] );
-  paramRight[1] = atof( argv[7] );
+  paramRight[0] = atof( argv[7] );
+  paramRight[1] = atof( argv[8] );
 
   if( isalpha( argv[argc-3][0] ) ){
     //save debugging images
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 			psfLeft, apertureLeft, paramLeft);
   makeShiftBlurPSFFreq( inputRight->height, inputRight->width, RIGHT_CAM,
 			psfRight, apertureRight, paramRight);
-  printf("psf create done");
+  printf("psf create done\n");
 
 
   /*----------------------------------------*/

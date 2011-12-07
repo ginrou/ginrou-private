@@ -24,8 +24,8 @@ print "@jpgFiles\n";
 $apLeft = 'Zhou2011.png';
 $apRight = 'Zhou2011.png';
 
-@pL = qw\1.0 0.0\;
-@pR = qw\1.0 0.0\;
+@pL = qw\0.25 0.0\;
+@pR = qw\0.25 0.0\;
 $debugDir = 'debugImages';
 $dispmap = 'DisparityMap.png';
 $deblurred = 'deblurred.png';
@@ -37,7 +37,7 @@ push @args, $apLeft;
 push @args, $apRight;
 push @args, @pL;
 push @args, @pR;
-push @args, $debugDir;
+push @args, $dir.$debugDir;
 push @args, $dispmap;
 push @args, $deblurred;
 
