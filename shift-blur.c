@@ -57,9 +57,8 @@ int main( int argc, char* argv[]){
   /*----------------------------------------*/
   /*           depth estimation             */
   /*----------------------------------------*/
-  //IMG* dst = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
-  IMG* dst = deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight );
-
+  IMG* dst = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  //IMG* dst = deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight );
   saveImage( dst, argv[argc-1] );
     
   return 0;

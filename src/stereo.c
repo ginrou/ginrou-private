@@ -80,7 +80,8 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
       }
     else
       {
-	return stereoInitialDisparityMap( srcLeft, srcRight, FundMat, maxDisparity);
+	return stereoInitialDisparityMap( srcLeft, srcRight, FundMat, 
+					  maxDisparity, minDisparity/2);
       }
 
   }else{//小さい視差へ投げる
@@ -140,7 +141,8 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
 IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 				IMG_COL* srcRight,
 				Mat* FundMat,
-				int maxDisparity)
+				int maxDisparity,
+				int minDisparity)
 {
   int height = srcLeft->height;
   int width = srcLeft->width;
@@ -156,6 +158,7 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 
   // disparity map ( to return)
   IMG* initDispMap = createImage(height, width);
+  convertScaleImage( initDispMap, initDispMap, 0.0, minDisparity);
 
   // vectores for epipoler
   Mat pt1 = matrixAlloc( 3, 1);
@@ -171,7 +174,7 @@ IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
       double min = DBL_MAX;
       int count = 0;
 
-      for( int x = w + 0; x < w + maxDisparity; ++x){
+      for( int x = w + minDisparity; x < w + maxDisparity; ++x){
 	
 	// epipoler
 	// a*x + b*y + c = 0
@@ -229,10 +232,9 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       printf("srcRight-> %d * %d\n return NULL \n", srcRight->width , srcRight->height);
       return NULL;
     }
-  /*
+  
   printf("stereo next disparity map : previous size = %d, %d next size = %d, %d\n",
 	 prevDispMap->height, prevDispMap->width, nextHeight, nextWidth);
-  */
 
   //視差マップ( prevDispmap )をコンバート
   IMG* dispMap = createImage( nextHeight, nextWidth );
@@ -292,7 +294,6 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
       for( int x = w + prevDisparity*2 - 1; x < w+prevDisparity*2 +searchWidth; ++x){
 	for( int y = (-a/b)*(double)x -c/b ; y <= (-a/b)*(double)(x+1) -c/b ; ++y){
 
-
 	  rightPt.x = x;
 	  rightPt.y = y;
 	  
@@ -316,8 +317,8 @@ IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 
     }//w
 
-    _ClearLine();
-    printf("line : %4d / %4d -> %3d %%", h, dst->height, 100 * h / dst->height);
+    _ClearRetLine();
+    printf("line : %4d / %4d -> %3d %%\n", h, dst->height, 100 * h / dst->height);
 
   }//h
 

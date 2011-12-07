@@ -1,7 +1,0 @@
-2
-expB/leftImage-03.png
-expB/rightImage-03.png
-aperture/circle.png
-aperture/circle.png
-0.500000 -9.467200
-0.500000 -7.722154

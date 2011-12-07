@@ -167,7 +167,7 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
 
   
   // deblur part
-  for(int d = 0 ; d < MAX_DISPARITY; ++d){
+  for(int d = MIN_DISPARITY ; d < MAX_DISPARITY; ++d){
     
     // left image
     // copy
@@ -211,7 +211,7 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
       double min = DBL_MAX;
       double minDisp, val;
 
-      for( int d = 0; d < MAX_DISPARITY; ++d){
+      for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
 	double resid = 0.f;
 	
 	for( int y = 0 ; y < WINDOW_SIZE; ++y){
@@ -275,7 +275,7 @@ Mat deblurBaseEstimationMatFreq(IMG* left, IMG* right, freq* psfLeft[], freq* ps
   // compute deblurred image
   fftw_plan dblPlan = fftw_plan_dft_2d( height, width, tmpDbl, tmpDbl, 
 					FFTW_BACKWARD, FFTW_ESTIMATE);
-  for( int d = 0; d < MAX_DISPARITY; ++d){
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
 
     wienerCalc( capLeft, psfLeft[d], tmpDbl, height*width );
     fftw_execute( dblPlan);
@@ -311,7 +311,7 @@ Mat deblurBaseEstimationMatFreq(IMG* left, IMG* right, freq* psfLeft[], freq* ps
       double min = DBL_MAX;
       double minDisp, val;
 
-      for(int d = 0; d < MAX_DISPARITY; ++d){
+      for(int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
 	double resid = 0.0;
 
 	for( int y = 0; y < WINDOW_SIZE; ++y){
@@ -335,7 +335,7 @@ Mat deblurBaseEstimationMatFreq(IMG* left, IMG* right, freq* psfLeft[], freq* ps
   }//h
 
   // clean up
-  for( int d = 0; d< MAX_DISPARITY; ++d){
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
     matrixFree( dblLeft[d] );
     matrixFree( dblRight[d] );
   }
@@ -373,7 +373,7 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
   fftw_destroy_plan( capRightPlan );
 
   // compute latent image
-  for( int d = 0; d < MAX_DISPARITY; ++d){
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
 
     // compute latent image
     latent[d] = (freq*)fftw_malloc( memSize );
@@ -405,7 +405,10 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
 	for( w = 0 ; w < width; ++w){
 	  int i = h*width+w;
 	  double hoge = debugRegion[i][0]*debugRegion[i][0] + debugRegion[i][1]*debugRegion[i][1];
-	  IMG_ELEM( debugImage, h, w) = sqrt(hoge) / scale;
+	  hoge = sqrt(hoge)/scale;
+	  if( hoge < 0 ) hoge = 0.0;
+	  else if( hoge > 255 ) hoge = 255.0;
+	  IMG_ELEM( debugImage, h, w) = hoge;
 	}
       }
       sprintf(filename, "%s/latent%02d.png", tmpImagesDir, d);
@@ -437,7 +440,7 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
 
 
   // loop of disparity
-  for( int d = 0 ; d < MAX_DISPARITY; ++d){
+  for( int d = MIN_DISPARITY ; d < MAX_DISPARITY; ++d){
     
     // calc resid
     for( int i = 0; i < height*width ;++i){
@@ -483,9 +486,10 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
     for( h = 0; h < height; ++h){
       for( w = 0; w < width; ++w){
 	double sum = 0.0, val;
-	for( int y = 0 ; y < WINDOW_SIZE; ++y){
-	  for( int x = 0; x < WINDOW_SIZE; ++x){
-	    if( y+h >= height || x+w >= width ) continue;
+	for( int y = -WINDOW_SIZE/2 ; y < WINDOW_SIZE/2; ++y){
+	  for( int x = -WINDOW_SIZE/2; x < WINDOW_SIZE/2; ++x){
+	    if(y+h < 0 || y+h >= height || 
+	       x+w < 0 || x+w >= width ) continue;
 	    else{
 	      sum += ELEM0( residMap, h+y, w+x);
 	    }

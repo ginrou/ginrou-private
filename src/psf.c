@@ -120,10 +120,12 @@ void makeBlurPSFFreq( IMG* aperture, double param[2], freq* dst[MAX_DISPARITY],
     IMG *tmp2 = createImage( (int)size + 1, (int)size + 1 );
     resizeImage( aperture, tmp1);
     resizeImage( aperture, tmp2);
-    if( (double)d * param[0] + param[1] > 0.0 ){
+    if( (double)d * param[0] + param[1] < 0.0 ){
       flipImage( tmp1, 1, 1);
       flipImage( tmp2, 1, 1);
     }
+
+    printf("disp = %d, psf size = %lf\n", d, (double)d * param[0] + param[1]);
     
     // copy to FFTW
     Mat mat1 = cloneMatFromImage(tmp1);
@@ -334,10 +336,12 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
       flipImage( img1, 1, 0);
       flipImage( img2, 1, 0);
     }
-    if( (double)disp * param[0] + param[1] > 0.0 ){
+    if( (double)disp * param[0] + param[1] < 0.0 ){
       flipImage( img1, 1, 1);
       flipImage( img2, 1, 1);
     }
+
+    printf("disp = %d, psf size = %lf\n", disp, (double)disp * param[0] + param[1]);
 
     // fill to tmp
     for(int i = 0; i < height * width ; ++ i){

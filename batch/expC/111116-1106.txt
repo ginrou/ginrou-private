@@ -1,7 +1,0 @@
-3
-expC/leftImage-04.png
-expC/rightImage-04.png
-aperture/CAPair1.png
-aperture/CAPair2.png
-0.500000 -9.467200
-0.500000 -9.467200

@@ -5,43 +5,74 @@
 
 int main(int argc, char* argv[])
 {
-  setbuf( stdout, NULL); // 改行をまたないように
-
-
-  showDispMap( readImage(argv[1]));
-
-  return 0;
-
-
-
-  char imgName[256];
-  sprintf( imgName , "test/gradation.jpg");
-  char txtName[256];
-  sprintf( txtName , "test/gradation.txt");
-
-  int height = 120;
-  int width = 512;
-  IMG* img = createImage( height, width );
-  int h, w;
+  printf("main\n");
   
-  for( h  = 0 ; h < height; ++h){
-    for( w = 0; w < width; ++w){
-      IMG_ELEM( img, h, w) = w/2;
-    }
+  setbuf( stdout, NULL); // 改行をまたないように
+  
+  if( argc <= 4 ){
+    printf("input arguments are\n");
+    printf("arg[0] : process name %s\n", argv[0]);
+    printf("arg[1] : input left  \n");
+    printf("arg[2] : input right \n");
+    printf("arg[3] : aperture left  \n");
+    printf("arg[4] : left param  \n");
+    printf("left psf size = arg[5] * disparity + arg[6]\n");
+    printf("right psf size = arg[7] * disparity + arg[8]\n");
+    printf("arg[9] : tmp directry to save debugging images ( optional )\n");
+    printf("arg[10] : output disparity map  \n");
+    printf("arg[11] : output deblurred map\n");
+    return 0;
   }
 
-  saveImage(img, imgName);
+  /*----------------------------------------*/
+  /*         read input arguments           */
+  /*----------------------------------------*/
+  IMG* inputLeft = readImage( argv[1] );
+  IMG* inputRight = readImage( argv[1] );
+  IMG* apertureLeft = readImage( argv[1] );
+  IMG* apertureRight = readImage( argv[1] );
 
-  IMG* test = readImage( imgName );
-  FILE* fp = fopen( txtName, "w" );
+  double paramLeft[2], paramRight[2];
+  paramLeft[0] = atof( argv[5] );
+  paramLeft[1] = atof( argv[6] );
+  paramRight[0] = atof( argv[6] );
+  paramRight[1] = atof( argv[7] );
 
-  for( h = 0; h < height; ++h){
-    for( w = 0 ;w < width; ++w){
-      fprintf( fp, "%d, %d\n", w/2, IMG_ELEM( test, h, w));
-    }
+  if( isalpha( argv[argc-3][0] ) ){
+    //save debugging images
+    strcpy( tmpImagesDir, argv[argc-3]);
+    saveDebugImages = YES;
+  }else{
+    saveDebugImages = NO;
   }
 
-  fclose( fp );
+
+  
+  /*----------------------------------------*/
+  /*        make psf in freq domain         */
+  /*----------------------------------------*/
+  freq *psfLeft[MAX_DISPARITY];
+  freq *psfRight[MAX_DISPARITY];
+  makeShiftBlurPSFFreq( inputLeft->height, inputLeft->width, LEFT_CAM,
+			psfLeft, apertureLeft, paramLeft);
+  makeShiftBlurPSFFreq( inputRight->height, inputRight->width, RIGHT_CAM,
+			psfRight, apertureRight, paramRight);
+  printf("psf create done");
+
+
+  /*----------------------------------------*/
+  /*          depth estimation              */
+  /*----------------------------------------*/
+  IMG* disparityMap = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  saveImage( disparityMap, argv[argc-2] );
+
+  /*----------------------------------------*/
+  /*             deblurring                 */
+  /*----------------------------------------*/
+  printf("deblurring is not implemented yet\n");
+  
+
+
 
 
   return 0;

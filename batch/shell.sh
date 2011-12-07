@@ -1,7 +1,7 @@
 #!/bin/sh
 PROCESS=("shift-blur.out" "stereoDepthEstimation.out" "DepthFromDefocus.out" "CodedAperturePair.out")
 
-for dir in "expA" "expB" "expC"
+for dir in "exp" #"expB" "expC" 
 do
     echo ${dir}
     i=1
@@ -22,11 +22,11 @@ do
 	if [ ! -d $imgs_dir ]; then
 	    mkdir $imgs_dir
 	fi
-	#args[5]=-2.0
-	#args[6]=26.0
-	#args[7]=2.0
-	#args[8]=-16.0
-	echo ${args[@]}
+	# args[5]=-1.0
+	# args[6]=0.0
+	# args[7]=-1.0s
+	# args[8]=0.0
+	echo ${args[@]} "${dir}/disparityMap$i.png"
 	./$process ${args[@]} $imgs_dir "${dir}/disparityMap$i.png"
 	let i=${i}+1
    done

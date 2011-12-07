@@ -242,6 +242,11 @@ void saveImageColor( IMG_COL *img, char *filename)
     }
   cvMerge( tmp[0], tmp[1], tmp[2], NULL, buf);
   int result = cvSaveImage( filename, buf, 0);
+  
+  if( result )
+    printf("%s is saved as color\n", filename);
+  else
+    printf("%s cannot save\n", filename);
 
   for(int c = 0; c < 3 ; ++c)
     cvReleaseImage( &(tmp[c]) );
@@ -295,7 +300,10 @@ void convertMat2IMG( Mat* src, IMG* dst)
 
  for(int h = 0; h < dst->height ; h++){
    for( int w = 0 ; w < dst->width ; ++w){
-     IMG_ELEM( dst, h, w) = (unsigned char)ELEM0(*src, h, w);
+     double val = ELEM0(*src, h, w);
+     if( val < 0 ) val = 0;
+     if ( val > 255 ) val = 255;
+     IMG_ELEM( dst, h, w) = val;
    }
  }
  return;

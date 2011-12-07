@@ -45,6 +45,8 @@ int main( int argc, char* argv[]){
     saveDebugImages = NO;
   }
 
+  printf("save images to %s\n", argv[argc-1]);
+
   /*----------------------------------------*/
   /*           make psf in freq             */
   /*----------------------------------------*/
@@ -58,8 +60,8 @@ int main( int argc, char* argv[]){
   /*----------------------------------------*/
   /*           depth estimation             */
   /*----------------------------------------*/
-  //IMG* dst = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
-  IMG* dst = deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight );
+  IMG* dst = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  //IMG* dst = deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight );
   saveImage( dst, argv[argc-1] );
 
     

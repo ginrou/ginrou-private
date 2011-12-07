@@ -29,6 +29,7 @@ void printPassedTime(void);
 
 // 手前の一行を消す
 #define _ClearLine() { fputs("\r\x1b[2K", stdout); fflush(stdout); }
-
+// 直前の行を一行消す
+#define _ClearRetLine() { fputs("\r\x1b[1A", stdout);fputs("\r\x1b[2K", stdout);fflush(stdout);}
 
 #endif

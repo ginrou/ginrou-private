@@ -1,0 +1,7 @@
+2
+expA/leftImage-03.png
+expA/rightImage-03.png
+aperture/Zhou0002.png
+aperture/Zhou0002.png
+-1.200000 29.357394
+-1.200000 27.560001

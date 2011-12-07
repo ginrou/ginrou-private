@@ -20,7 +20,19 @@
 #define END_WIDTH 350
 
 int main(int argc, char* argv[]){
-  
+
+  if( argc == 1 ){
+    printf("arguments of this program are below\n");
+    printf("  argv[1] : ground truth image\n");
+    printf("  argv[2] : analyze objective\n");
+    printf("  argv[3] : output file name (png image )\n");
+    printf("  argv[4] : start height to analyze\n");
+    printf("  argv[5] : start width to analyze\n");
+    printf("  argv[6] : end height point to analyze\n");
+    printf("  argv[7] : end width point to analyze\n");
+
+    return 0;
+  }
 
   setbuf(stdout, NULL);
   IMG* input1 = readImage(argv[1]);
@@ -38,7 +50,7 @@ int main(int argc, char* argv[]){
   int endHeight   = END_HEIGHT;
   int endWidth    = END_WIDTH;
 
-  if( argc >= 4 ){
+  if( argc > 4 ){
     startHeight = atoi( argv[4] );
     startWidth  = atoi( argv[5] );
     endHeight   = atoi( argv[6] );
@@ -55,8 +67,8 @@ int main(int argc, char* argv[]){
       int val1 = IMG_ELEM( input1, h, w);
       int val2 = IMG_ELEM( input2, h, w);
       mean += SQUARE( val1 - val2 );
-      IMG_ELEM( errorMap, h, w) = SQUARE( val1-val2 );
-      if(fabs(val1-val2) >= 1) count++;
+      IMG_ELEM( errorMap, h, w) = fabs( val1-val2 );
+      if(fabs(val1-val2) > 1) count++;
     }
   }
   mean /= scale;

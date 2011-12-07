@@ -10,7 +10,7 @@
 #include <imageProcessing.h>
 #include <util.h>
 
-#define MATCHING_BLOCK_SIZE  ( 7 )
+#define MATCHING_BLOCK_SIZE  ( maxDisparity/2 )
 
 
 
@@ -23,7 +23,8 @@ IMG* stereoRecursive( IMG_COL* srcLeft,
 IMG* stereoInitialDisparityMap( IMG_COL* srcLeft,
 				IMG_COL* srcRight,
 				Mat* FundMat,
-				int maxDisparity);
+				int maxDisparity,
+				int minDisparity);
 
 IMG* stereoNextDisparityMap( IMG_COL* srcLeft,
 			     IMG_COL* srcRight,

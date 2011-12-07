@@ -3,5 +3,5 @@ expA/leftImage-01.png
 expA/rightImage-01.png
 aperture/Zhou0002.png
 aperture/Zhou0002.png
-0.500000 -9.467200
-0.500000 -7.722154
+-1.200000 29.357394
+-1.200000 27.560001

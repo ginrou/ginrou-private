@@ -10,7 +10,8 @@
 #define CENTER_CAM 1
 #define RIGHT_CAM 2
 
-#define MAX_DISPARITY 20
+#define MAX_DISPARITY 60
+#define MIN_DISPARITY 40
 #define MAX_PSF_SIZE 32
 #define FFT_SIZE 64
 
@@ -19,10 +20,11 @@
 #define BLOCK_SIZE 16 //2^nのほうが都合が良い
 
 // depth estimation でどれくらい近くまで探索するか
-#define WINDOW_SIZE 7
+#define WINDOW_SIZE 20
 
 // wiener deconvolutionにおける正則化パラメータ
 #define SNR 0.002 
+
 
 #include <stdlib.h>
 #include <stdio.h>

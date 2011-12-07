@@ -23,7 +23,7 @@ int main( int argc, char* argv[]){
   }
 
 
-  IMG* dst = stereoRecursive( inputLeft, inputRight, &fundMat, MAX_DISPARITY, 1);
+  IMG* dst = stereoRecursive( inputLeft, inputRight, &fundMat, MAX_DISPARITY, MIN_DISPARITY);
   saveImage( dst, argv[argc-1] );
 
   return 0;
