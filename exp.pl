@@ -15,20 +15,19 @@ foreach (@jpgFiles) {
   system("./imageResize.out $in $out @roi") unless -e $out;
   $_ = $out;
 }
-
 closedir DIR;
 print "@jpgFiles\n";
 
 
 for (1..2) {
-  $inRight = pop @jpgFiles;
-  $inLeft = pop @jpgFiles;
+  $inRight = shift @jpgFiles;
+  $inLeft = shift @jpgFiles;
   $apLeft = 'Zhou2011.png';
   $apRight = 'Zhou2011.png';
   @pL = qw\0.25 0.0\;
   @pR = qw\0.25 0.0\;
   $debugDir = "debugImages$_";
-  mkdir( $dir.$debugDir ,0755) unless( -d $dir.$debugDir );
+  mkdir( $debugDir ,0755) unless( -d $debugDir );
   $dispmap = 'DisparityMap.png';
   $deblurred = 'deblurred.png';
   @args = ();

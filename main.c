@@ -28,9 +28,9 @@ int main(int argc, char* argv[])
   /*         read input arguments           */
   /*----------------------------------------*/
   IMG* inputLeft = readImage( argv[1] );
-  IMG* inputRight = readImage( argv[1] );
-  IMG* apertureLeft = readImage( argv[1] );
-  IMG* apertureRight = readImage( argv[1] );
+  IMG* inputRight = readImage( argv[2] );
+  IMG* apertureLeft = readImage( argv[3] );
+  IMG* apertureRight = readImage( argv[4] );
 
   double paramLeft[2], paramRight[2];
   paramLeft[0] = atof( argv[5] );
