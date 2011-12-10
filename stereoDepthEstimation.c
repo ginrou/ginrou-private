@@ -6,6 +6,14 @@
 
 int main( int argc, char* argv[]){
 
+  if( argc == 1 ){
+    printf("input arguments : \n");
+    printf("arg[1] : input left image \n");
+    printf("arg[2] : input right image \n");
+    printf("arg[3] : debugging images\n");
+    printf("arg[4] : disparity map\n");
+    return 0;
+  }
 
   printf("stereo matching depth estimation\n");
   IMG* tmp = readImage( argv[1] );

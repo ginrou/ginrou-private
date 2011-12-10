@@ -6,7 +6,7 @@ SRC_DIR = src
 INCLUDE_DIR = src
 LIB_DIR = lib
 
-MAINFILE = main.c
+MAINFILE = test.c
 TARGET = ${MAINFILE:.c=.out}
 ANOTHER_SRC = imageData.c util.c imageProcessing.c stereo.c deblur.c matrix.c fourier.c complex.c  blur.c deblur2.c batch.c psf.c expsystem.c depthEstimation.c 
 ANOTHER_OBJS := ${ANOTHER_SRC:.c=.o}

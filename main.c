@@ -63,7 +63,9 @@ int main(int argc, char* argv[])
   /*----------------------------------------*/
   /*          depth estimation              */
   /*----------------------------------------*/
-  IMG* disparityMap = latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  IMG* disparityMap;
+  //disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  disparityMap= deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight);
   saveImage( disparityMap, argv[argc-2] );
 
   /*----------------------------------------*/

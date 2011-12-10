@@ -39,7 +39,7 @@ for (1..2) {
 #   push @args, $dir.$debugDir;
   push @args, $dispmap;
 #   push @args, $deblurred;      
-
+  
   print "input arguments are \n";
   @newArgs = ();
   foreach (@args) {
