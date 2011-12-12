@@ -34,6 +34,7 @@ int main( int argc, char* argv[] ){
   cvConvertScale( dispMap, dst, 1.0 / 16.0, 0.0 );
   cvSaveImage( argv[4], dst , NULL);
 
+  
 
   return 0;
 
