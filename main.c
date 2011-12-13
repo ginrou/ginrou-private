@@ -72,10 +72,17 @@ int main(int argc, char* argv[])
   /*----------------------------------------*/
   /*             deblurring                 */
   /*----------------------------------------*/
-  printf("deblurring is not implemented yet\n");
-  
-
-
+  IMG_COL *leftCol = readImageColor( argv[1] );
+  IMG_COL *rightCol = readImageColor( argv[1] );  
+  IMG_COL deblurred;
+  deblurred.height = disparityMap->height;
+  deblurred.width = disparityMap->width;
+  for(int c = 0; c < 3; ++c){
+    deblurred.channel[c] 
+      = deblurFromTwoImages( leftCol->channel[c], rightCol->channel[c],
+			     psfLeft, psfRight, disparityMap);
+  }
+  saveImageColor( &deblurred, argv[argc-1] );
 
 
   return 0;

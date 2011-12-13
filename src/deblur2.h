@@ -22,6 +22,10 @@ IMG* deblurFFTWResize( IMG* img, IMG* psf, double size);
 
 Mat hummingWindow( int imgHeight, int imgWidth, int psfHeight, int psfWidth);
 
+IMG* deblurFromTwoImages( IMG* imgLeft, IMG* imgRight,
+			  freq* psfLeft[], freq* psfRight[],
+			  IMG* disparityMap);
+
 
 #endif
 

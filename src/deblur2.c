@@ -1,6 +1,7 @@
 #include "deblur2.h"
 
 
+
 IMG* deblurFFTW( IMG* img, IMG* psf)
 {
   int h, w;  
@@ -454,4 +455,88 @@ Mat hummingWindow( int imgHeight, int imgWidth, int psfHeight, int psfWidth)
     }
   }
   return win;
+}
+
+
+
+IMG* deblurFromTwoImages( IMG* imgLeft, IMG* imgRight,
+			  freq* psfLeft[], freq* psfRight[],
+			  IMG* disparityMap)
+{
+  int h, w;
+  int height = imgLeft->height;
+  int width = imgLeft->width;
+
+  size_t memSize = sizeof(freq) * height * width;
+  freq* capLeft  = (freq*)fftw_malloc( memSize );
+  freq* capRight = (freq*)fftw_malloc( memSize );
+  freq* latent[MAX_DISPARITY];
+
+  // FFT of captured images
+  copySrc( imgLeft, capLeft );
+  copySrc( imgRight, capRight );
+  fftw_plan capLeftPlan = fftw_plan_dft_2d( height, width, capLeft, capLeft,
+					    FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan capRightPlan = fftw_plan_dft_2d( height, width, capRight, capRight,
+					    FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute( capLeftPlan );
+  fftw_execute( capRightPlan );
+  fftw_destroy_plan( capLeftPlan );
+  fftw_destroy_plan( capRightPlan );
+  
+  // compute latent image at each disparity map
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
+    
+    // compute latent image
+    latent[d] = (freq*)fftw_malloc( memSize );
+    fftw_plan dftplan = fftw_plan_dft_2d( height, width, latent[d], latent[d],
+					  FFTW_BACKWARD, FFTW_ESTIMATE);
+    for( int i = 0; i < height * width; ++i){
+
+      double fLr = psfLeft[d][i][0];
+      double fLi = psfLeft[d][i][1];
+      double fRr = psfRight[d][i][0];
+      double fRi = psfRight[d][i][1];
+      double yLr = capLeft[i][0];
+      double yLi = capLeft[i][1];
+      double yRr = capRight[i][0];
+      double yRi = capRight[i][1];
+
+      double denom = fLr*fLr + fLi*fLi + fRr*fRr + fRi*fRi + SNR ;
+      latent[d][i][0] = ( fLr*yLr + fLi*yLi + fRr*yRr + fRi*yRi ) / denom ;
+      latent[d][i][1] = ( fLr*yLi - fLi*yLr + fRr*yRi - fRi*yRr ) / denom ;
+    }
+
+    fftw_execute( dftplan );
+    fftw_destroy_plan( dftplan );
+
+  }
+  
+  
+  // patch up deblurred images
+  IMG* dst = createImage( height, width);
+  double scale = height * width;
+  for(int h = 0; h < height; ++h){
+    for( int w = 0; w < width; ++w){
+      int disp = IMG_ELEM( disparityMap, h, w);
+      int idx = h * width + w;
+      
+      double re = latent[disp][idx][0];
+      double im = latent[disp][idx][1];
+      double val= sqrt( re*re + im*im ) / scale;
+      if( val < 0 ) val = 0.0;
+      else if( val > 255 ) val = 255.0;
+      IMG_ELEM( dst, h, w) = val;
+    }
+  }
+
+  
+  // clean up
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d)
+    fftw_free( latent[d] );
+  fftw_free( capLeft );
+  fftw_free( capRight );
+
+  return dst;
+
 }

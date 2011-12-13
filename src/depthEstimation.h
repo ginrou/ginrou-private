@@ -35,6 +35,10 @@
 
 #include "include.h"
 
+void copySrc( const IMG* src, freq* dst);
+
+
+
 IMG* blurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);
 IMG* deblurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);
 IMG* deblurBaseEstimationIMGFreq(IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
