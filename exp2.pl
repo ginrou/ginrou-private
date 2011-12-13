@@ -32,7 +32,7 @@ for( 1..4 ){
   my $inRight = shift @imgArray;
   my $apLeft = 'Zhou2011.png';
   my $apRight = 'Zhou2011.png';
-  my $offset = 15.0 * int( ($_-1)/2 );
+  my $offset = 15.0 * int( ($_-1)/2 ); #offset is 0 and 15
   my @pL = qq\0.25 $offset\;
   my @pR = qq\0.25 $offset\;
   my $debugDir = "debugImages$_";
@@ -61,7 +61,7 @@ for( 1..4 ){
   }
 
   chdir "../" or die "$!";
-  system("./main.out @newArgs");
+  #system("./main.out @newArgs");
   chdir $dir or die "$!";
 
 }
@@ -69,9 +69,11 @@ for( 1..4 ){
 ## disparity map
 for( 1..2 ){
   my @args = ();
-  push @args, shift @jpegFiles;
-  push @args, shift @jpegFiles;
-  push @args, shift @maxDisparities;
+  my $left  = shift @jpegFiles;
+  my $right = shift @jpegFiles;
+  push @args, $left;
+  push @args, $right;
+  push @args, (shift @maxDisparities )/2;
   push @args, "DisparityMap$_.png";
   print "input arguments of stereo are\n";
   print "@args\n";
