@@ -6,7 +6,7 @@ use strict;
 my $dir = 'calibDir/';
 my @roi = qw\0 0 1936 1296\;
 my @size = qw\968 648\; ## image size to resize
-my @maxDisparities = qw\64 140\;
+my @maxDisparities = qw\104 140\;
 
 chdir "$dir" or die "cannot chdir $!";
 
@@ -25,14 +25,17 @@ closedir DIR;
 
 ## pack images to array
 my @imgArray = ( @jpegFiles , @jpegFiles );
+@imgArray = (@imgArray, @imgArray);
+my @apertures = ("Zhou2011.png", "Zhou2011Flip.png");
+
 
 ## deblurring
 for( 1..4 ){
   my $inLeft = shift @imgArray;
   my $inRight = shift @imgArray;
-  my $apLeft = 'Zhou2011.png';
-  my $apRight = 'Zhou2011.png';
-  my $offset = 15.0 * int( ($_-1)/2 ); #offset is 0 and 15
+  my $apLeft = $apertures[$_/2];
+  my $apRight = $apertures[$_/2];
+  my $offset = 0.0;
   my @pL = qq\0.25 $offset\;
   my @pR = qq\0.25 $offset\;
   my $debugDir = "debugImages$_";
@@ -61,12 +64,15 @@ for( 1..4 ){
   }
 
   chdir "../" or die "$!";
-  system("./main.out @newArgs");
+  #system("./main.out @newArgs");
   chdir $dir or die "$!";
 
 }
+print "deblurring done\n";
+
 
 ## disparity map
+print "start stereo matching\n";
 for( 1..2 ){
   my @args = ();
   my $left  = shift @jpegFiles;
