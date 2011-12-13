@@ -18,7 +18,6 @@ while( my $name = readdir DIR ){
 }
 closedir DIR;
 
-print "@imageFiles\n";
 
 #resize images
 foreach( @imageFiles ){
@@ -30,7 +29,8 @@ foreach( @imageFiles ){
 
 my @param0 = qw\-0.2409  0.2601 -0.21    0.1412\;
 my @param1 = qw\ 8.9984 -4.443  21.8257 -3.8989\;
-
+my @param0 = qw \0.2234 -0.3264\;
+my @param1 = qw \-2.956 11.6487\;
 
 ## pack to @args and run
 for(1..2){
