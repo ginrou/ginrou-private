@@ -320,7 +320,7 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
     
     // size of psf
     double size = fabs( (double)disp * param[0] + param[1] );
-    if( size < 1.0 ) size = 1.0;
+    if( size < 1.0 ){ size = 1.0;}
 
     // copy image & resize
     IMG* img1 = createImage( (int)size, (int)size );
@@ -341,8 +341,8 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
       flipImage( img2, 1, 1);
     }
 
-    printf("disp = %d, psf size = %lf\n", disp, (double)disp * param[0] + param[1]);
-
+    printf("disp = %d, imgsize = %d, psf size = %lf\n", disp, (int)size, (double)disp * param[0] + param[1]);
+    
     // fill to tmp
     for(int i = 0; i < height * width ; ++ i){
       tmp1[i][0] = 0.0;
