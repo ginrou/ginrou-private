@@ -1,54 +1,48 @@
 #!/usr/bin/perl
 
 use 5.010;
+use strict;
 
-$dir = 'expDir/';
-chdir "$dir" or die "cannnot chdir to ./expDir $!";
+my $dir = 'expDir';
+chdir $dir or die "$!";
 
-opendir DIR, "./";
-@jpgFiles = grep{ /.*\d\.JPG$/} readdir DIR;
-
-@roi = qw\0 0 1936 1296\;
-foreach (@jpgFiles) {
-  $in = $out = $_;
-  $out =~ s/.JPG/_little\.JPG/;
-  system("./imageResize.out $in $out @roi") unless -e $out;
-  $_ = $out;
+my @imageFiles;
+my @apertures;
+opendir DIR, "./" or die "cannot opendir $dir $!";
+while( my $name = readdir DIR ){
+  push @imageFiles, $name if $name =~  /.*\d.*\.JPG$/;
+  push @apertures, $name if $name =~ /^Zhou.*/;
 }
 closedir DIR;
-print "@jpgFiles\n";
+#print "@imageFiles\n";
+#print "@apertures\n";
 
-for (1..2) {
-  $inRight = shift @jpgFiles;
-  $inLeft = shift @jpgFiles;
-  $apLeft = 'Zhou2011.png';
-  $apRight = 'Zhou2011.png';
-  @pL = qw\0.25 15.0\;
-  @pR = qw\0.25 15.0\;
-  $debugDir = "debugImages$_";
-  mkdir( $debugDir ,0755) unless( -d $debugDir );
-  $dispmap = 'DisparityMap.png';
-  $deblurred = 'deblurred.png';
-  @args = ();
-  push @args, $inLeft;
-  push @args, $inRight;
-#   push @args, $apLeft;
-#   push @args, $apRight;
-#   push @args, @pL;
-#   push @args, @pR;
-#   push @args, $dir.$debugDir;
-  push @args, $dispmap;
-#   push @args, $deblurred;      
+my @param0 = qw\-0.2409  0.2601 -0.21    0.1412\;
+my @param1 = qw\ 8.9984 -4.443  21.8257 -3.8989\;
+
+#print "@param0\n";
+#print "@param1\n";
+
+## pack to @args and run
+for(1..2){
+  my @args = ();
+  my $debugDir = $dir."debugImages$_";
+  mkdir( $debugDir, 0755 ) unless( -d $debugDir );
+  my $left  = shift @imageFiles;
+  my $right = shift @imageFiles;
+  push @args, $right;
+  push @args, $left;
+  push @args, @apertures;
+  push @args, @apertures;
+  my @param = ( shift @param0, shift @param1, shift @param0, shift @param1);
+  push @args, @param;
+  push @args, $debugDir;
+  push @args, "disparityMap$_.png";
+  push @args, "dblImage$_.png";
 
   print "input arguments are \n";
-  @newArgs = ();
-  foreach (@args) {
-    $_ = $dir.$_ if(/.*\.[a-zA-z]/);
-    push @newArgs, $_;
-    print "$_\n";
-  }
+  print "$_\n" foreach(@args);
 
-  chdir "../" or die "$!";
-  system("./stereoDepthEstimation.out @newArgs");
-  chdir $dir or die "$!";
+  system("./main.out @args") unless ($_ == 1);
+
 }
