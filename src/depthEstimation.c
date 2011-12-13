@@ -522,3 +522,64 @@ Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRi
   return dst;
   
 }
+
+
+
+
+void deblurBaseEstimationFreqDebugOnly( IMG*left, IMG* right, freq* psfLeft[], freq* psfRight[] )
+{
+  int h, w;
+  int height = left->height;
+  int width = left->width;
+  size_t memSize = sizeof( freq ) * height * width ;
+  freq *capLeft  = (freq*)fftw_malloc( memSize );
+  freq *capRight = (freq*)fftw_malloc( memSize ); 
+  freq* tmpDbl   = (freq*)fftw_malloc( memSize ); 
+  Mat dblLeft[MAX_DISPARITY], dblRight[MAX_DISPARITY];
+
+
+  // FFT of captured images
+  copySrc( left, capLeft );
+  copySrc( right, capRight );
+  fftw_plan capLeftPlan = fftw_plan_dft_2d( height, width, capLeft, capLeft,
+					    FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan capRightPlan = fftw_plan_dft_2d( height, width, capRight, capRight,
+					    FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute( capLeftPlan );
+  fftw_execute( capRightPlan );
+  fftw_destroy_plan( capLeftPlan );
+  fftw_destroy_plan( capRightPlan );
+
+  // compute deblurred image
+  fftw_plan dblPlan = fftw_plan_dft_2d( height, width, tmpDbl, tmpDbl, 
+					FFTW_BACKWARD, FFTW_ESTIMATE);
+  for( int d = 0; d < MAX_DISPARITY; ++d){
+
+    wienerCalc( capLeft, psfLeft[d], tmpDbl, height*width );
+    fftw_execute( dblPlan);
+    dblLeft[d] = matrixAlloc( height, width );
+    copyDbl( tmpDbl, dblLeft[d] );
+
+    wienerCalc( capRight, psfRight[d], tmpDbl, height*width );
+    fftw_execute( dblPlan );
+    dblRight[d] = matrixAlloc( height, width );
+    copyDbl( tmpDbl, dblRight[d] );
+  }
+
+  // debug : save image
+  if( saveDebugImages == YES ){
+    char filename[256];
+    IMG* img = createImage( height, width);
+    for(int d = 0; d < MAX_DISPARITY; ++d){
+      convertMat2IMG( &dblLeft[d], img );
+      sprintf( filename, "%s/deblur-left%02d.png", tmpImagesDir, d );
+      saveImage( img, filename );
+
+      convertMat2IMG( &dblRight[d], img );
+      sprintf( filename, "%s/deblur-right%02d.png", tmpImagesDir, d );
+      saveImage( img, filename );
+    }
+    releaseImage( &img );
+  }
+
+}

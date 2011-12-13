@@ -45,5 +45,7 @@ Mat deblurBaseEstimationMat(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]
 Mat deblurBaseEstimationMatFreq(IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
 Mat latentBaseEstimationMat( IMG* left, IMG* right, freq* psfLeft[], freq* psfRight[]);
 
+void deblurBaseEstimationFreqDebugOnly( IMG*left, IMG* right, freq* psfLeft[], freq* psfRight[] );
+
 
 #endif
