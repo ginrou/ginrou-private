@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   /*             deblurring                 */
   /*----------------------------------------*/
   IMG_COL *leftCol = readImageColor( argv[1] );
-  IMG_COL *rightCol = readImageColor( argv[1] );  
+  IMG_COL *rightCol = readImageColor( argv[2] );  
   IMG_COL deblurred;
   deblurred.height = disparityMap->height;
   deblurred.width = disparityMap->width;
