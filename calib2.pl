@@ -64,7 +64,7 @@ for( 1..4 ){
   }
 
   chdir "../" or die "$!";
-  #system("./main.out @newArgs");
+  system("./main.out @newArgs");
   chdir $dir or die "$!";
 
 }
