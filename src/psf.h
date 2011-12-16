@@ -29,6 +29,11 @@ void makeShiftBlurPSFFreq( int height, int width, int cam,
 			   freq* dst[MAX_DISPARITY],
 			   IMG* aperture, double param[2] );
 
+void makeShiftBlurPSFFreq2x( int height, int width, int cam,
+			   freq* dst[MAX_DISPARITY],
+			   IMG* aperture, double param[2] );
+
+
 
 // utility of psf
 

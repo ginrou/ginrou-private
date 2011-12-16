@@ -47,9 +47,9 @@ int main( int argc, char* argv[]){
   /*----------------------------------------*/
   freq *psfLeft[MAX_DISPARITY];
   freq *psfRight[MAX_DISPARITY];
-  makeShiftBlurPSFFreq( inputLeft->height, inputLeft->width, LEFT_CAM,
+  makeShiftBlurPSFFreq2x( inputLeft->height, inputLeft->width, LEFT_CAM,
 			psfLeft, apertureLeft, paramLeft);
-  makeShiftBlurPSFFreq( inputRight->height, inputRight->width, RIGHT_CAM,
+  makeShiftBlurPSFFreq2x( inputRight->height, inputRight->width, RIGHT_CAM,
 			psfRight, apertureRight, paramRight);
   printf("psf create done\n");
   
