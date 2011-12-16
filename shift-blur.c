@@ -53,6 +53,12 @@ int main( int argc, char* argv[]){
 			psfRight, apertureRight, paramRight);
   printf("psf create done\n");
   
+  PSFSaveForDebug( psfLeft, inputLeft->height, inputLeft->width, 
+		   MIN_DISPARITY, MAX_DISPARITY, "psfLeft");
+  
+  PSFSaveForDebug( psfRight, inputRight->height, inputRight->width, 
+		   MIN_DISPARITY, MAX_DISPARITY, "psfRight");
+
 
   /*----------------------------------------*/
   /*           depth estimation             */

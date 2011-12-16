@@ -50,4 +50,6 @@ Mat PSFCutoffZeroRegion( Mat src);
 // 0でない数をカウント
 int numOfNonZero( Mat mat );
 
+void PSFSaveForDebug( freq* psf[], int height, int width,
+		      int minDisparity, int maxDisparity, char fileappend[]);
 #endif 

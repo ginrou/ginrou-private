@@ -434,7 +434,7 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
   fftw_plan plan1 = fftw_plan_dft_2d( height, width, tmp1, tmp1, FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_plan plan2 = fftw_plan_dft_2d( height, width, tmp2, tmp2, FFTW_FORWARD, FFTW_ESTIMATE);
 
-  for( int disp = 0; disp < MAX_DISPARITY; ++disp){
+  for( int disp = MIN_DISPARITY-1; disp < MAX_DISPARITY; ++disp){
 
     // size of psf at disparity disp
     double size = 2.0 * fabs( (double)disp * param[0] + param[1] );
@@ -446,7 +446,6 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
     resizeImage( aperture, img2 );
 
     // flip
-    // ここいらんくね？
     if( cam == LEFT_CAM ){
       flipImage( img1, 0, 1);
       flipImage( img2, 0, 1);
@@ -475,9 +474,9 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
     double norm = imageNormL1( img1 );
     int center;
     if( cam == LEFT_CAM)
-      center = MAX_DISPARITY - disp + img1->width/2;
+      center = MAX_DISPARITY/2 - disp + img1->width/2;
     else
-      center = MAX_DISPARITY + disp + img1->width/2;
+      center = -MAX_DISPARITY/2 + disp + img1->width/2;
     for( h = 0; h < img1->height; ++h){
       for( w = 0; w < img1->width; ++w){
 	int y = h - img1->height/2;
@@ -493,9 +492,9 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
     norm = imageNormL1( img2 );
     center;
     if( cam == LEFT_CAM)
-      center = MAX_DISPARITY - disp + img2->width/2;
+      center = MAX_DISPARITY/2 - disp + img2->width/2;
     else
-      center = MAX_DISPARITY + disp + img2->width/2;
+      center = -MAX_DISPARITY/2 + disp + img2->width/2;
     for( h = 0; h < img2->height; ++h){
       for( w = 0; w < img2->width; ++w){
 	int y = h - img2->height/2;
@@ -533,7 +532,7 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
 	}
 
 	dst[disp][ h*width/2 + w][0] = re / 4.0;
-	dst[disp][ h*width/2 + w][1] = re / 4.0;
+	dst[disp][ h*width/2 + w][1] = im / 4.0;
 
       }
     }
@@ -620,3 +619,43 @@ int numOfNonZero( Mat mat ){
   }
   return count;
 }
+
+
+void PSFSaveForDebug( freq* psf[], int height, int width,
+		      int minDisparity, int maxDisparity, char fileappend[])
+{
+  int memSize = sizeof(freq)*height*width;
+  int h, w;
+
+  freq* tmp = (freq*)fftw_malloc( memSize);
+  IMG* img = createImage( height, width );
+
+  for(int d = minDisparity; d < maxDisparity; ++d ){
+    fftw_plan plan = fftw_plan_dft_2d( height, width, psf[d], tmp, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute( plan );
+    double scale = height*width;
+    for(h=0;h<height;++h){
+      for(w=0;w<width;++w){
+	int idx = h*width+w;
+	double val = tmp[idx][0]*tmp[idx][0] + tmp[idx][1]*tmp[idx][1];
+	val = 1000000.0 * sqrt(val) / scale;
+	if( val < 0 ) val = 0.0;
+	else if ( val > 255 ) val = 255;
+	IMG_ELEM( img, h, w) = val;
+      }
+    }
+
+    char filename[256];
+    sprintf(filename, "%s/%s%02d.png", tmpImagesDir, fileappend, d);
+    saveImage( img, filename);
+
+    fftw_destroy_plan( plan );
+  }
+  releaseImage( &img );
+  fftw_free( tmp );
+}
+
+
+
+
+
