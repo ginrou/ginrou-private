@@ -474,13 +474,13 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
     double norm = imageNormL1( img1 );
     int center;
     if( cam == LEFT_CAM)
-      center = MAX_DISPARITY/2 - disp + img1->width/2;
-    else
       center = -MAX_DISPARITY/2 + disp + img1->width/2;
+    else
+      center =  MAX_DISPARITY/2 - disp + img1->width/2;
     for( h = 0; h < img1->height; ++h){
       for( w = 0; w < img1->width; ++w){
 	int y = h - img1->height/2;
-	int x = center - w;
+	int x = w - center;
 	y += ( y<0 ) ? height : 0;
 	x += ( x<0 ) ? width  : 0;
 	int idx = y *width + x;
@@ -492,13 +492,13 @@ void makeShiftBlurPSFFreq2x( int height, int width, int cam,
     norm = imageNormL1( img2 );
     center;
     if( cam == LEFT_CAM)
-      center = MAX_DISPARITY/2 - disp + img2->width/2;
-    else
       center = -MAX_DISPARITY/2 + disp + img2->width/2;
+    else
+      center =  MAX_DISPARITY/2 - disp + img2->width/2;
     for( h = 0; h < img2->height; ++h){
       for( w = 0; w < img2->width; ++w){
 	int y = h - img2->height/2;
-	int x = center - w;
+	int x = w - center;
 	y += ( y<0 ) ? height : 0;
 	x += ( x<0 ) ? width  : 0;
 	int idx = y *width + x;

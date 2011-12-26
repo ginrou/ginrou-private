@@ -64,24 +64,23 @@ int main(int argc, char* argv[])
   /*          depth estimation              */
   /*----------------------------------------*/
   IMG* disparityMap;
-/*   disparityMap= deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight); */
-/*   disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight); */
-/*   saveImage( disparityMap, argv[argc-2] ); */
-  deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
+  disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  saveImage( disparityMap, argv[argc-2] );
+  //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
   /*----------------------------------------*/
   /*             deblurring                 */
   /*----------------------------------------*/
-/*   IMG_COL *leftCol = readImageColor( argv[1] ); */
-/*   IMG_COL *rightCol = readImageColor( argv[2] );   */
-/*   IMG_COL deblurred; */
-/*   deblurred.height = disparityMap->height; */
-/*   deblurred.width = disparityMap->width; */
-/*   for(int c = 0; c < 3; ++c){ */
-/*     deblurred.channel[c]  */
-/*       = deblurFromTwoImages( leftCol->channel[c], rightCol->channel[c], */
-/* 			     psfLeft, psfRight, disparityMap); */
-/*   } */
-/*   saveImageColor( &deblurred, argv[argc-1] ); */
+  IMG_COL *leftCol = readImageColor( argv[1] );
+  IMG_COL *rightCol = readImageColor( argv[2] );
+  IMG_COL deblurred;
+  deblurred.height = disparityMap->height;
+  deblurred.width = disparityMap->width;
+  for(int c = 0; c < 3; ++c){
+    deblurred.channel[c]
+      = deblurFromTwoImages( leftCol->channel[c], rightCol->channel[c],
+			     psfLeft, psfRight, disparityMap);
+  }
+  saveImageColor( &deblurred, argv[argc-1] );
 
 
   return 0;

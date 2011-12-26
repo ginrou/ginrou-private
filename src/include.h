@@ -10,8 +10,8 @@
 #define CENTER_CAM 1
 #define RIGHT_CAM 2
 
-#define MAX_DISPARITY 60
-#define MIN_DISPARITY 40
+#define MAX_DISPARITY 61
+#define MIN_DISPARITY 32
 #define MAX_PSF_SIZE 32
 #define FFT_SIZE 64
 
