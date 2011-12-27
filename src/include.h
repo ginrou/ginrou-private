@@ -11,7 +11,7 @@
 #define RIGHT_CAM 2
 
 #define MAX_DISPARITY 61
-#define MIN_DISPARITY 32
+#define MIN_DISPARITY 0
 #define MAX_PSF_SIZE 32
 #define FFT_SIZE 64
 

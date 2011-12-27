@@ -1,54 +1,83 @@
 #!/usr/bin/perl
 
+##
+## PSF size を計測するためのバッチファイル
+##
+
 use 5.010;
+use strict;
 
-$dir = 'calibDir/';
-chdir "$dir" or die "cannnot chdir to ./expDir $!";
+## parameters
+my $dir = 'calibDir';
+my @size = qw\968 648\;
+my $aperture = 'Zhou11-12.png';
+my $disparityRange = 60;
+my $maxPSFSize = 60;
 
-opendir DIR, "./";
-@jpgFiles = grep{ /.*\d\.JPG$/} readdir DIR;
+## change directry 
+chdir ($dir) or die "cannot chdir $dir $!";
 
-@roi = qw\0 0 1936 1296\;
-foreach (@jpgFiles) {
-  $in = $out = $_;
-  $out =~ s/.JPG/_little\.JPG/;
-  system("./imageResize.out $in $out @roi") unless -e $out;
-  $_ = $out;
-}
+## read jpeg files
+opendir (DIR, "./") or die "cannot open dir $dir $!";
+my @jpegFiles = grep{/.*\d\.JPG/} readdir DIR;
 closedir DIR;
-print "@jpgFiles\n";
 
-for (1..2) {
-  $inRight = shift @jpgFiles;
-  $inLeft = shift @jpgFiles;
-  $apLeft = 'Zhou2011.png';
-  $apRight = 'Zhou2011.png';
-  @pL = qw\0.25 15.0\;
-  @pR = qw\0.25 15.0\;
-  $debugDir = "debugImages$_";
-  mkdir( $debugDir ,0755) unless( -d $debugDir );
-  $dispmap = 'DisparityMap.png';
-  $deblurred = 'deblurred.png';
-  @args = ();
-  push @args, $inLeft;
-  push @args, $inRight;
-#   push @args, $apLeft;
-#   push @args, $apRight;
-#   push @args, @pL;
-#   push @args, @pR;
-#   push @args, $dir.$debugDir;
-  push @args, $dispmap;
-#   push @args, $deblurred;      
+## resize images
+@jpegFiles = &resize( @size, @jpegFiles);
+print "$_\n" foreach @jpegFiles;
 
-  print "input arguments are \n";
-  @newArgs = ();
-  foreach (@args) {
-    $_ = $dir.$_ if(/.*\.[a-zA-z]/);
-    push @newArgs, $_;
-    print "$_\n";
+## set parameters and execute
+foreach (@jpegFiles) {
+
+  my $img = $_;
+  my $inLeft = my $inRight = $img;
+  my $ap = $aperture;
+  my $psfSize = 0.0;
+
+  while( $psfSize < $maxPSFSize ){
+
+    my $prevSize = $psfSize;
+    my @pL = qq\0.25 $psfSize\;
+    $psfSize += 0.25 * $disparityRange;
+    my @pR = qq\0.25 $psfSize\;
+
+    my $debugDir = "debugImages-".$img."-$prevSize-$psfSize";
+    mkdir( $debugDir, 0755) unless( -d $debugDir );
+
+    my @args =();
+    push @args, $img, $img, $ap, $ap;
+    push @args, @pL, @pR, $debugDir;
+    print "input arguments are @args\n";
+
+    system("./wienerTest.out @args");
+
   }
 
-  chdir "../" or die "$!";
-  system("./stereoDepthEstimation.out @newArgs");
-  chdir $dir or die "$!";
 }
+
+
+############################################################
+##                   サブルーチン
+############################################################
+
+##############################
+##  画像の拡大縮小
+##############################
+sub resize{
+  ## 画像変換のプログラム
+  my $program = "imageResize.out";
+
+  my( $width, $height, @input) = @_;
+
+  my @ret;
+
+  foreach (@input) {
+    my $in = my $out = $_;
+    $out =~ s/\.JPG$/_resize\.JPG/;
+    system("./$program $in $width $height $out") unless -e $out;
+    push( @ret, $out );
+  }
+  return @ret;
+}
+
+
