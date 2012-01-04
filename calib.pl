@@ -10,7 +10,7 @@ use strict;
 ## parameters
 my $dir = 'calibDir';
 my @size = qw\968 648\;
-my $aperture = 'Zhou11-12.png';
+my @aperture = qw\$dir./PSFLeft.png $dir./PSFRight.png\;
 my $disparityRange = 60;
 my $maxPSFSize = 60;
 
@@ -31,7 +31,7 @@ foreach (@jpegFiles) {
 
   my $img = $_;
   my $inLeft = my $inRight = $img;
-  my $ap = $aperture;
+  my $ap = shift @aperture;
   my $psfSize = 0.0;
 
   while( $psfSize < $maxPSFSize ){
