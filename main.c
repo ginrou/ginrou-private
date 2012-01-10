@@ -66,15 +66,10 @@ int main(int argc, char* argv[])
   /*----------------------------------------*/
   IMG* disparityMap;
   disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
-<<<<<<< HEAD
   //disparityMap= deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight);
   //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
   saveImage( disparityMap, argv[argc-2] );
 
-=======
-  saveImage( disparityMap, argv[argc-2] );
-  //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
->>>>>>> 50db62522bb7ec801751833c5e772141c3f6d2d6
   /*----------------------------------------*/
   /*             deblurring                 */
   /*----------------------------------------*/

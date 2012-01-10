@@ -63,16 +63,6 @@ system( "./main.out @args");
 
 
 
-
-
-
-
-
-
-
-
-
-
 sub resizeImage {
   my @size = ( shift(@_), shift(@_) );
   my @ret = ();
