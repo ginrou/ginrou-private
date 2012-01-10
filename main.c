@@ -38,10 +38,11 @@ int main(int argc, char* argv[])
   paramRight[0] = atof( argv[7] );
   paramRight[1] = atof( argv[8] );
 
-  if( isalpha( argv[argc-3][0] ) ){
+  if( !isalpha( argv[argc-3][0] ) ){
     //save debugging images
     strcpy( tmpImagesDir, argv[argc-3]);
     saveDebugImages = YES;
+    printf("save images to %s\n", tmpImagesDir);
   }else{
     saveDebugImages = NO;
   }
@@ -65,8 +66,15 @@ int main(int argc, char* argv[])
   /*----------------------------------------*/
   IMG* disparityMap;
   disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+<<<<<<< HEAD
+  //disparityMap= deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight);
+  //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
+  saveImage( disparityMap, argv[argc-2] );
+
+=======
   saveImage( disparityMap, argv[argc-2] );
   //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
+>>>>>>> 50db62522bb7ec801751833c5e772141c3f6d2d6
   /*----------------------------------------*/
   /*             deblurring                 */
   /*----------------------------------------*/

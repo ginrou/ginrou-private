@@ -6,7 +6,7 @@ use strict;
 my $dir = 'calibDir/';
 my @roi = qw\0 0 1936 1296\;
 my @size = qw\968 648\; ## image size to resize
-my @maxDisparities = qw\104 140\;
+my @maxDisparities = qw\108 140\;
 
 chdir "$dir" or die "cannot chdir $!";
 
@@ -80,7 +80,7 @@ for( 1..2 ){
   push @args, $left;
   push @args, $right;
   push @args, (shift @maxDisparities )/2;
-  push @args, "DisparityMap$_.png";
+  push @args, "disparityMapCalib$_.png";
   print "input arguments of stereo are\n";
   print "@args\n";
   system("./cvStereo.out @args");

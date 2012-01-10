@@ -6,6 +6,15 @@
 
 int main( int argc, char* argv[]){
 
+<<<<<<< HEAD
+  printf("disparity map checker \n");
+
+  if( argc == 1 ){
+    printf("input argument is\n");
+    printf("arg[1] : disparity map image\n");
+    return 0;
+  }
+=======
   printf("Deblurring method with Wiener deconvolution\n");
 
   if( argc == 1 ){
@@ -49,6 +58,8 @@ int main( int argc, char* argv[]){
 			  psfRight, apertureRight, paramRight);
 			  
   deblurBaseEstimationFreqDebugOnly( left, right, psfLeft, psfRight );
+>>>>>>> 50db62522bb7ec801751833c5e772141c3f6d2d6
 
+  showDispMap( readImage( argv[1] ));
   return 0;
 }

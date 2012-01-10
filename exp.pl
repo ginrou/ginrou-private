@@ -3,58 +3,85 @@
 use 5.010;
 use strict;
 
-my $dir = 'expDir';
-chdir $dir or die "$!";
+my $rootDir = 'expDir';
+my $imgsDir = '120107';
+my $debugDir = 'debugImages';
 
-my @imageFiles;
-my @apertures;
+my $disparityMap = 'disparityMap.png';
+my $deblurredImage = 'deblurredImage.png';
 
-my @size = qw\968 648\;
+my @size = qw\968 648\; # image size
 
-opendir DIR, "./" or die "cannot opendir $dir $!";
-while( my $name = readdir DIR ){
-  push @imageFiles, $name if $name =~  /.*\d\.JPG/;
-  push @apertures, $name if $name =~ /^Zhou.*/;
+my $leftImage = 'DSC_0026_resize.JPG';
+my $rightImage = 'DSC_0027_resize.JPG';
+
+my $leftAperture = 'PSF5m.png';
+my $rightAperture = 'PSF2m.png';
+
+my @paramLeft = qw\0.489 -4.77\;
+my @paramRight = qw\-0.48 16.1447\;
+
+system("make");
+system("mv main.out $rootDir");
+
+## attatch directry
+$leftImage = "$imgsDir/$leftImage";
+$rightImage = "$imgsDir/$rightImage";
+$leftAperture = "$imgsDir/$leftAperture";
+$rightAperture = "$imgsDir/$rightAperture";
+$debugDir = "$imgsDir/$debugDir";
+$disparityMap = "$imgsDir/$disparityMap";
+$deblurredImage = "$imgsDir/$deblurredImage";
+
+## change direcry to root directry
+chdir $rootDir or die "$!";
+
+## image resize
+my @imgs = resizeImage( @size, $leftImage, $rightImage);
+
+
+## set arguments
+mkdir( $debugDir, 0755 ) unless -d $debugDir;
+
+my @args = ();
+push @args, $leftImage;
+push @args, $rightImage;
+push @args, $leftAperture;
+push @args, $rightAperture;
+push @args, @paramLeft;
+push @args, @paramRight;
+push @args, $debugDir;
+push @args, $disparityMap;
+push @args, $deblurredImage;
+
+print "input arguments are\n";
+print "$_\n" foreach(@args);
+
+
+system( "./main.out @args");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sub resizeImage {
+  my @size = ( shift(@_), shift(@_) );
+  my @ret = ();
+
+  foreach( @_){
+    my $in = my $out = $_;
+    $out =~ s/.JPG$/_resize\.JPG/;
+    system("./imageResize.out $in @size $out") unless -e $out;
+    push (@ret, $out);
+  }
+  return @ret;
 }
-closedir DIR;
-
-
-#resize images
-foreach( @imageFiles ){
-  my $in = my $out = $_;
-  $out =~ s/.JPG$/_resize\.JPG/;
-  system("./imageResize.out $in @size $out") unless -e $out;
-  $_ = $out;
-}
-
-my @param0 = qw\-0.2409  0.2601 -0.21    0.1412\;
-my @param1 = qw\ 8.9984 -4.443  21.8257 -3.8989\;
-my @param0 = qw \0.2234 -0.3264\;
-my @param1 = qw \-2.956 11.6487\;
-
-## pack to @args and run
-for(1..2){
-  my @args = ();
-  my $debugDir = "debugImages$_";
-  mkdir( $debugDir, 0755 ) unless( -d $debugDir );
-  my $left  = shift @imageFiles;
-  my $right = shift @imageFiles;
-  push @args, $right;
-  push @args, $left;
-  push @args, @apertures;
-  push @args, @apertures;
-  my @param = ( shift @param0, shift @param1, shift @param0, shift @param1);
-  push @args, @param;
-  push @args, $debugDir;
-  push @args, "disparityMap$_.png";
-  push @args, "dblImage$_.png";
-
-  print "input arguments are \n";
-  print "$_\n" foreach(@args);
-
-  system("./main.out @args");
-  last unless defined @imageFiles;
-}
-
-
-#sytem("./calib2.pl");

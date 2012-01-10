@@ -10,7 +10,7 @@ use strict;
 ## parameters
 my $dir = 'calibDir';
 my @size = qw\968 648\;
-my @aperture = qw\$dir./PSFLeft.png $dir./PSFRight.png\;
+my @aperture = qw\$dir./PSF5m.png $dir./PSF2m.png\;
 my $disparityRange = 60;
 my $maxPSFSize = 60;
 
