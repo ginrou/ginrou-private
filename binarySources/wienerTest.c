@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[])
 {
-  printf("main\n");
+  printf("wiener test\n");
   
   setbuf( stdout, NULL); // 改行をまたないように
   
@@ -19,8 +19,6 @@ int main(int argc, char* argv[])
     printf("left psf size = arg[5] * disparity + arg[6]\n");
     printf("right psf size = arg[7] * disparity + arg[8]\n");
     printf("arg[9] : tmp directry to save debugging images ( optional )\n");
-    printf("arg[10] : output disparity map  \n");
-    printf("arg[11] : output deblurred map\n");
     return 0;
   }
 
@@ -38,9 +36,9 @@ int main(int argc, char* argv[])
   paramRight[0] = atof( argv[7] );
   paramRight[1] = atof( argv[8] );
 
-  if( !isalpha( argv[argc-3][0] ) ){
+  if( 1 ){
     //save debugging images
-    strcpy( tmpImagesDir, argv[argc-3]);
+    strcpy( tmpImagesDir, argv[argc-1]);
     saveDebugImages = YES;
     printf("save images to %s\n", tmpImagesDir);
   }else{
@@ -65,28 +63,11 @@ int main(int argc, char* argv[])
   /*          depth estimation              */
   /*----------------------------------------*/
   IMG* disparityMap;
-  disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
+  //disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
   //disparityMap= deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight);
-  //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
-
-  saveImage( disparityMap, argv[argc-2] );
-
-  /*----------------------------------------*/
-  /*             deblurring                 */
-  /*----------------------------------------*/
-  IMG_COL *leftCol = readImageColor( argv[1] );
-  IMG_COL *rightCol = readImageColor( argv[2] );
-  IMG_COL deblurred;
-  deblurred.height = disparityMap->height;
-  deblurred.width = disparityMap->width;
-  for(int c = 0; c < 3; ++c){
-    deblurred.channel[c]
-      = deblurFromTwoImages( leftCol->channel[c], rightCol->channel[c],
-			     psfLeft, psfRight, disparityMap);
-  }
-  saveImageColor( &deblurred, argv[argc-1] );
-
+  deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
 
   return 0;
+
 }
 

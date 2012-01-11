@@ -8,30 +8,38 @@ use 5.010;
 use strict;
 
 ## parameters
-my $dir = 'calibDir';
+my $rootDir = 'calibDir';
+my $dataDir = '120110';
 my @size = qw\968 648\;
-my @aperture = qw\$dir./PSF5m.png $dir./PSF2m.png\;
+my @aperture = qw\PSF2m.png PSF5m.png\;
 my $disparityRange = 60;
 my $maxPSFSize = 60;
 
-## change directry 
-chdir ($dir) or die "cannot chdir $dir $!";
+## change directry
+chdir ($rootDir) or die "cannot chdir $rootDir $!";
 
 ## read jpeg files
-opendir (DIR, "./") or die "cannot open dir $dir $!";
+opendir (DIR, "$dataDir") or die "cannot open dir $dataDir $!";
 my @jpegFiles = grep{/.*\d\.JPG/} readdir DIR;
 closedir DIR;
+
+foreach (@jpegFiles){
+  $_ = $dataDir."/".$_;
+}
 
 ## resize images
 @jpegFiles = &resize( @size, @jpegFiles);
 print "$_\n" foreach @jpegFiles;
+
+## stereo
+system("./cvStereo.out @jpegFiles $disparityRange $dataDir/disparitymap.png");
 
 ## set parameters and execute
 foreach (@jpegFiles) {
 
   my $img = $_;
   my $inLeft = my $inRight = $img;
-  my $ap = shift @aperture;
+  my $ap = shift( @aperture );
   my $psfSize = 0.0;
 
   while( $psfSize < $maxPSFSize ){
@@ -41,12 +49,17 @@ foreach (@jpegFiles) {
     $psfSize += 0.25 * $disparityRange;
     my @pR = qq\0.25 $psfSize\;
 
-    my $debugDir = "debugImages-".$img."-$prevSize-$psfSize";
+    chdir $dataDir;
+    my $hoge = $img;
+    $hoge =~ s/($dataDir\/)(.*)(_resize.JPG)/$2/;
+    my $debugDir = "dbgImg-".$hoge."_$prevSize-$psfSize";
+    say $debugDir;
     mkdir( $debugDir, 0755) unless( -d $debugDir );
+    chdir '..';
 
     my @args =();
     push @args, $img, $img, $ap, $ap;
-    push @args, @pL, @pR, $debugDir;
+    push @args, @pL, @pR, $dataDir."/".$debugDir;
     print "input arguments are @args\n";
 
     system("./wienerTest.out @args");

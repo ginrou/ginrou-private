@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 
 my $rootDir = 'expDir';
-my $imgsDir = '120107';
+my $imgsDir = '120110';
 my $debugDir = 'debugImages';
 
 my $disparityMap = 'disparityMap.png';
@@ -12,14 +12,14 @@ my $deblurredImage = 'deblurredImage.png';
 
 my @size = qw\968 648\; # image size
 
-my $leftImage = 'DSC_0026_resize.JPG';
-my $rightImage = 'DSC_0027_resize.JPG';
+my $leftImage = 'DSC_0002_resize.JPG';
+my $rightImage = 'DSC_0001_resize.JPG';
 
-my $leftAperture = 'PSF5m.png';
-my $rightAperture = 'PSF2m.png';
+my $leftAperture = 'PSF2m.png';
+my $rightAperture = 'PSF5m.png';
 
-my @paramLeft = qw\0.489 -4.77\;
-my @paramRight = qw\-0.48 16.1447\;
+my @paramLeft = qw\0.5893 -8.6786\;
+my @paramRight = qw\-0.6553 21.0528\;
 
 system("make");
 system("mv main.out $rootDir");
