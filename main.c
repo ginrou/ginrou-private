@@ -68,9 +68,9 @@ int main(int argc, char* argv[])
   disparityMap= latentBaseEstimationIMG( inputLeft, inputRight, psfLeft, psfRight);
   //disparityMap= deblurBaseEstimationIMGFreq( inputLeft, inputRight, psfLeft, psfRight);
   //deblurBaseEstimationFreqDebugOnly( inputLeft, inputRight, psfLeft, psfRight );
-
+  
   saveImage( disparityMap, argv[argc-2] );
-
+  
   /*----------------------------------------*/
   /*             deblurring                 */
   /*----------------------------------------*/
@@ -81,8 +81,9 @@ int main(int argc, char* argv[])
   deblurred.width = disparityMap->width;
   for(int c = 0; c < 3; ++c){
     deblurred.channel[c]
-      = deblurFromTwoImages( leftCol->channel[c], rightCol->channel[c],
-			     psfLeft, psfRight, disparityMap);
+      = deblurFromTwoImagesOriginal( leftCol->channel[c], rightCol->channel[c],
+				     psfLeft, paramLeft, psfRight, paramRight,
+				     disparityMap);
   }
   saveImageColor( &deblurred, argv[argc-1] );
 

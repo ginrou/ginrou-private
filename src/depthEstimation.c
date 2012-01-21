@@ -24,7 +24,7 @@ void copyDbl(freq* src, Mat dst)
   }
 }
 
-void wienerCalc( freq* src, freq* psf, freq* dbl, int size)
+void wienerCalc(freq*  src,  freq* psf, freq* dbl, int size)
 {
   for( int i = 0; i < size; ++i){
     double a = src[i][0];
@@ -570,7 +570,7 @@ void deblurBaseEstimationFreqDebugOnly( IMG*left, IMG* right, freq* psfLeft[], f
   if( saveDebugImages == YES ){
     char filename[256];
     IMG* img = createImage( height, width);
-    for(int d = 0; d < MAX_DISPARITY; ++d){
+    for(int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
       convertMat2IMG( &dblLeft[d], img );
       sprintf( filename, "%s/deblur-left%02d.png", tmpImagesDir, d );
       saveImage( img, filename );

@@ -459,9 +459,9 @@ Mat hummingWindow( int imgHeight, int imgWidth, int psfHeight, int psfWidth)
 
 
 
-IMG* deblurFromTwoImages( IMG* imgLeft, IMG* imgRight,
-			  freq* psfLeft[], freq* psfRight[],
-			  IMG* disparityMap)
+IMG* deblurFromTwoImagesLatent( IMG* imgLeft, IMG* imgRight,
+				freq* psfLeft[], freq* psfRight[],
+				IMG* disparityMap)
 {
   int h, w;
   int height = imgLeft->height;
@@ -536,6 +536,117 @@ IMG* deblurFromTwoImages( IMG* imgLeft, IMG* imgRight,
     fftw_free( latent[d] );
   fftw_free( capLeft );
   fftw_free( capRight );
+
+  return dst;
+
+}
+
+IMG* deblurFromTwoImagesOriginal( const IMG* imgLeft, const IMG* imgRight,
+				  freq* psfLeft[], const double paramLeft[2],
+				  freq* psfRight[], const double paramRight[2],
+				  IMG* disparityMap)
+{
+  int h, w;
+  int height = imgLeft->height;
+  int width  = imgLeft->width;
+
+  IMG *dblArrayLeft[MAX_DISPARITY], *dblArrayRight[MAX_DISPARITY];
+
+  // set up of FFTW
+  size_t memSize = sizeof(freq) * (height * width );
+  freq *Left   = (freq*)fftw_malloc( memSize );
+  freq *Right  = (freq*)fftw_malloc( memSize );
+  freq *dblTmp = (freq*)fftw_malloc( memSize );
+  copySrc( imgLeft, Left);
+  copySrc( imgRight, Right);
+
+  // make plan and execute
+  fftw_plan leftPlan = fftw_plan_dft_2d( height, width, Left, Left,
+					 FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan rightPlan = fftw_plan_dft_2d( height, width, Right, Right,
+					 FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_plan dblPlan = fftw_plan_dft_2d( height, width, dblTmp, dblTmp,
+					FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute( leftPlan );
+  fftw_execute( rightPlan );
+  fftw_destroy_plan( leftPlan);
+  fftw_destroy_plan( rightPlan);
+
+  // deblurring
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
+    double scale = height * width;
+    // left image
+    wienerCalc( Left, psfLeft[d], dblTmp, height*width);
+    fftw_execute( dblPlan );
+    dblArrayLeft[d] = createImage( height, width );
+    for( h = 0; h < height; ++h ){
+      for( w = 0; w < width; ++w){
+	int idx = h * width + w;
+	double re = dblTmp[idx][0];
+	double im = dblTmp[idx][1];
+	double val = sqrt( re*re + im * im ) / scale;
+	IMG_ELEM( dblArrayLeft[d], h, w ) = ( val > 255 ) ? 255 : val;
+      }
+    }
+    flipImage( dblArrayLeft[d], 1, 1);
+
+    // right image
+    wienerCalc( Right, psfRight[d], dblTmp,  height*width);
+    fftw_execute( dblPlan );
+    dblArrayRight[d] = createImage( height, width );
+    for( h = 0; h < height; ++h ){
+      for( w = 0; w < width; ++w){
+	int idx = h * width + w;
+	double re = dblTmp[idx][0];
+	double im = dblTmp[idx][1];
+	double val = sqrt( re*re + im * im ) / scale;
+	IMG_ELEM( dblArrayRight[d], h, w ) = ( val > 255 ) ? 255 : val;
+      }
+    }
+    flipImage( dblArrayRight[d], 1, 1);
+
+  }// deblurring
+
+  if( saveDebugImages == YES ){
+    char filename[256];
+    for(int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
+      sprintf( filename, "%s/deblurTmp-left%02d.png", tmpImagesDir, d );
+      saveImage( dblArrayLeft[d], filename );
+      sprintf( filename, "%s/deblurTmp-right%02d.png", tmpImagesDir, d );
+      saveImage( dblArrayRight[d], filename );
+    }
+  }
+
+
+  //construct deblurred image
+  IMG* dst = createImage( height, width );
+  for( h = 0; h < height; ++h){
+    for( w = 0; w < width; ++w){
+      int d = IMG_ELEM( disparityMap, h, w);
+
+      double sL = fabs( (double)d * paramLeft[0] + paramLeft[1] );
+      double sR = fabs( (double)d * paramRight[0] + paramRight[1] );
+      /* if( (h*w) % 10 == 0 ){ */
+      /* 	printf("(%3d, %3d) -> d = %d, size:: left = %3.3lf, right = %3.3lf",h, w, d, sL, sR ); */
+      /* 	printf("%d, %d \n",IMG_ELEM( dblArrayLeft[d], h, w) ,IMG_ELEM( dblArrayRight[d], h, w)); */
+      /* } */
+      if( sL < sR ) // choose Left image
+	IMG_ELEM( dst, h, w ) = IMG_ELEM( dblArrayLeft[d], h, w);
+      else // choose Right image
+	IMG_ELEM( dst, h, w ) = IMG_ELEM( dblArrayRight[d], h, w);
+      
+    }
+  }
+  
+  
+  fftw_free( Left );
+  fftw_free( Right );
+  fftw_free( dblTmp );
+  fftw_destroy_plan( dblPlan );
+  for( int d = MIN_DISPARITY; d < MAX_DISPARITY; ++d){
+    releaseImage( &(dblArrayLeft[d] ));
+    releaseImage( &(dblArrayRight[d] ));
+  }
 
   return dst;
 

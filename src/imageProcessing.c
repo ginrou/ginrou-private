@@ -124,7 +124,7 @@ void putnoise(const IMG* src, IMG* dst, double mean, double var)
 
 void flipImage( IMG* img, int horizontal, int vertcial)
 {
-  IplImage* ipl = cvCreateImage( cvSize(img->height, img->width), IPL_DEPTH_8U, 1);
+  IplImage* ipl = cvCreateImage( cvSize(img->width, img->height), IPL_DEPTH_8U, 1);
   convertIMG2Ipl(img, ipl);
 
   int flip = 0;

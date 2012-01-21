@@ -35,8 +35,11 @@
 
 #include "include.h"
 
+// utility functions
+// usually used for Wiener Deconvolution
 void copySrc( const IMG* src, freq* dst);
-
+void copyDbl(freq* src, Mat dst);
+void wienerCalc(freq* src, freq* psf, freq* dbl, int size);
 
 
 IMG* blurBaseEstimationIMG(IMG* left, IMG* right, Mat psfLeft[], Mat psfRight[]);

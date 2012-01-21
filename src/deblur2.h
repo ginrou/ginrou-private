@@ -22,9 +22,17 @@ IMG* deblurFFTWResize( IMG* img, IMG* psf, double size);
 
 Mat hummingWindow( int imgHeight, int imgWidth, int psfHeight, int psfWidth);
 
-IMG* deblurFromTwoImages( IMG* imgLeft, IMG* imgRight,
-			  freq* psfLeft[], freq* psfRight[],
-			  IMG* disparityMap);
+// Zhouらの手法をベースにした処理手法
+IMG* deblurFromTwoImagesLatent( IMG* imgLeft, IMG* imgRight,
+				freq* psfLeft[], freq* psfRight[],
+				IMG* disparityMap);
+
+// 2枚のぼけ除去画像を生成して、PSFサイズの小さい方を取得する方法
+IMG* deblurFromTwoImagesOriginal( const IMG* imgLeft, const IMG* imgRight,
+				  freq* psfLeft[], const double paramLeft[2],
+				  freq* psfRight[], const double paramRight[2],
+				  IMG* disparityMap);
+
 
 
 #endif
