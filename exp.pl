@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 
 my $rootDir = 'expDir';
-my $imgsDir = '120110';
+my $imgsDir = '120135';
 my $debugDir = 'debugImages';
 
 my $disparityMap = 'disparityMap.png';

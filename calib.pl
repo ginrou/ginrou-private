@@ -9,11 +9,11 @@ use strict;
 
 ## parameters
 my $rootDir = 'calibDir';
-my $dataDir = '120110';
+my $dataDir = '120125';
 my @size = qw\968 648\;
-my @aperture = qw\PSF2m.png PSF5m.png\;
+my @aperture = qw\PSF5m.png PSF2m.png\;
 my $disparityRange = 60;
-my $maxPSFSize = 60;
+my $maxPSFSize = 30;
 
 ## change directry
 chdir ($rootDir) or die "cannot chdir $rootDir $!";
