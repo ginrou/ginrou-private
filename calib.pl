@@ -32,7 +32,7 @@ foreach (@jpegFiles){
 print "$_\n" foreach @jpegFiles;
 
 ## stereo
-system("./cvStereo.out @jpegFiles $disparityRange $dataDir/disparitymap.png");
+system("./cvStereo.out $jpegFiles[1] $jpegFiles[0] $disparityRange $dataDir/disparitymap.png");
 
 ## set parameters and execute
 foreach (@jpegFiles) {
