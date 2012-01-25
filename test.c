@@ -3,132 +3,122 @@
 #include <stdlib.h>
 #include "include.h"
 
-IMG* blurWithPSFMap2( IMG* img, IMG* psf[MAX_DISPARITY], IMG *dispMap);
+
+IMG_COL* imgCol;
+IMG* disparityMap;
+IMG* aperture;
+char dstFileName[256];
+
+char windowName[256];
+void mouseRefocus(int event, int x, int y, int flags, void *param);// マウスのコールバック
+
+IMG* refocusWithPSFMap( IMG* img, IMG* dispMap, IMG* psf[MAX_DISPARITY]);
 
 int main( int argc, char* argv[]){
 
-  int h, w, d;
-
-  // read image
-  IMG* center = readImage("test/center.png");
-  IMG* dispMap = readImage("test/disparityMap.png");
-  IMG* aperture = readImage("test/PSF2m.png");
-
-  if( center && dispMap && aperture == NULL ){
-    printf("cannot open file\n");
-    return 0;
+  if( argc < 4){
+    printf("execution file name %s\n", argv[0]);
+    printf("input arguments are..\n");
+    printf("argv[1] : all-focus image\n");
+    printf("argv[2] : disparity map\n");
+    printf("argv[3] : aperture \n");
+    printf("argv[4] : output blurred image\n");
+    return 1;
   }
 
-  // params
-  double focalDisaprity[2] = { 61, 75 };
-  double Diameter = 0.75;
-  double paramLeft[2],  paramRight[2];
-  paramLeft[0] = Diameter;
-  paramLeft[1] = -focalDisaprity[0] * Diameter;
+  // load inputs
+  imgCol = readImageColor( argv[1] );
+  disparityMap = readImage( argv[2] );
+  aperture = readImage( argv[3] );
+  sprintf(dstFileName, "%s", argv[4] );
 
-  paramRight[0] = -Diameter;
-  paramRight[1] = focalDisaprity[1] * Diameter;
-  
+  // used in display
+  IplImage *screan = cvLoadImage( argv[1], CV_LOAD_IMAGE_COLOR);
+  cvNamedWindow( windowName, CV_WINDOW_AUTOSIZE );
+  cvSetMouseCallback( windowName, mouseRefocus, NULL);
 
-
-  // create images
-  IMG* imgLeft = createImage( center->width, center->height);
-  IMG* imgRight = createImage( center->width, center->height);
-
-  // shift image
-  convertScaleImage( imgLeft, imgLeft, 0.0, 0.0 );
-  convertScaleImage( imgRight, imgRight, 0.0, 0.0 );
-  for( h = 0; h < center->height; ++h){
-    for( w = 0; w < center->width ;++w){
-      d = IMG_ELEM( dispMap, h, w);
-      if( w-d/2 < 0 || w + d/2 >= imgRight->width || d < 0) continue;
-      IMG_ELEM( imgLeft, h, w ) = IMG_ELEM( center, h, w  + d/2);
-      IMG_ELEM( imgRight, h, w ) = IMG_ELEM( center, h, w-d/2 );
-    }
+  while(1){
+    cvShowImage( windowName, screan );
+    int c = cvWaitKey(0);
+    if( c == '\x1b' || c == 'q' )
+      break;
   }
-  saveImage( imgLeft, "test/shiftLeft.png");
-  saveImage( imgRight, "test/shiftRight.png");
-
-
-  // blur image
-  // create PSF
-  IMG *psfLeft[MAX_DISPARITY], *psfRight[MAX_DISPARITY];
-  makeBlurPSF( psfLeft, aperture, MAX_DISPARITY, paramLeft );
-  makeBlurPSF( psfRight, aperture, MAX_DISPARITY, paramRight );
-
-  printf("make psf done\n");
-  IMG *bluLeft = blurWithPSFMap2( imgLeft, psfLeft, dispMap );
-  IMG *bluRight = blurWithPSFMap2( imgRight, psfRight, dispMap );
+  cvDestroyWindow( windowName );
+  cvReleaseImage( &screan );
   
-  saveImage(bluLeft, "test/bluredLeft.png");
-  saveImage(bluRight, "test/bluredRight.png");
-
-  // deblur image
-  
-  // set debugging directry
-  strcpy( tmpImagesDir, "test/imgs");
-  saveDebugImages = YES;
-  printf("save images to %s\n", tmpImagesDir);
-
-  // calcuate disparity
-  freq *psfLeftFreq[MAX_DISPARITY], *psfRightFreq[MAX_DISPARITY];
-  
-  flipImage( aperture, 1, 1);
-  makeShiftBlurPSFFreq( imgLeft->height, imgLeft->width, LEFT_CAM,
-			psfLeftFreq, aperture, paramLeft);
-  flipImage( aperture, 1, 1);
-  makeShiftBlurPSFFreq( imgRight->height, imgRight->width, RIGHT_CAM,
-			psfRightFreq, aperture, paramRight);
-  IMG*disparityMapEstimated;
-  //disparityMapEstimated = latentBaseEstimationIMG( bluLeft, bluRight, psfLeftFreq, psfRightFreq);
-  disparityMapEstimated = deblurBaseEstimationIMGFreq( bluLeft, bluRight, psfLeftFreq, psfRightFreq);
-
-  saveImage( disparityMapEstimated, "test/disparityMapEstimated.png");
-
-  IMG* deblurred = deblurFromTwoImages( bluLeft, bluRight, 
-					psfLeftFreq, psfRightFreq,
-					disparityMapEstimated);
-  saveImage( deblurred, "test/deblurred.png");
-
   return 0;
 }
 
 
 
-IMG* blurWithPSFMap2( IMG* img, IMG* psf[MAX_DISPARITY], IMG *dispMap)
+
+void mouseRefocus(int event, int x, int y, int flags, void *param)// マウスのコールバック
 {
+  if( event == CV_EVENT_LBUTTONDOWN ){
+
+    // input paramters
+    int d = IMG_ELEM( disparityMap, y, x);
+    double diameter;
+    printf("input diamter of aperture...");
+    scanf("%lf", &diameter);
+    double param[2];
+    param[0] = diameter;
+    param[1] = -diameter * (double)d;
+    printf("focused on %d, %d, disparity = %d, diameter = %lf",y, x, d, diameter);
+    printf(", parameter = %lf * disp + %lf\n", param[0], param[1]);
+
+    // create PSF
+    IMG* psf[MAX_DISPARITY*2];
+    makeBlurPSF( psf, aperture, MAX_DISPARITY*2, param);
+
+    printf("make PSF done\n");
+    // blurring
+    IMG_COL dst;
+    dst.height = imgCol->height;
+    dst.width = imgCol->width;
+    for(int c = 0; c < 3; ++c ){
+      dst.channel[c] = refocusWithPSFMap( imgCol->channel[c],disparityMap, psf);
+      printf("channel %d done\n", c);
+    }
+    // save 
+    saveImageColor( &dst, dstFileName );
+    
+    // release files
+
+  }
+}
+
+IMG* refocusWithPSFMap( IMG* img, IMG* dispMap, IMG* psf[MAX_DISPARITY*2])
+{
+  int h, w;
   IMG* dst = createImage( img->width, img->height );
 
-  double norm[MAX_DISPARITY];
-  for( int d = 0; d < MAX_DISPARITY; ++d){
-    norm[d] = 0.0;
-    for( int h = 0; h < psf[d]->height; ++h){
-      for( int w = 0; w < psf[d]->width; ++w){
-	norm[d] += IMG_ELEM( psf[d], h, w );
-      }
-    }
-  }
-
   convertScaleImage( dst, dst, 0.0, 0.0 );
-  for( int h = 0; h < dst->height; ++h){
-    for( int w = 0; w < dst->width; ++w){
+
+  for( h = 0; h < dst->height; ++h ){
+    for( w = 0; w < dst->width; ++w){
       int d = IMG_ELEM( dispMap, h, w);
-      if( d < MIN_DISPARITY || d >= MAX_DISPARITY ) continue;
-      double sum = 0.0;
+      if( d < 10 ){
+	IMG_ELEM(dst, h, w ) = IMG_ELEM( img, h, w );
+	continue;
+      }
+      double s = 0;
+      double n = 0;
       for( int y = 0; y < psf[d]->height; ++y){
 	for( int x = 0; x < psf[d]->width; ++x){
-	  int py = h + y - psf[d]->height/2;
-	  int px = w + x - psf[d]->width/2;
-	  if( py < 0 || py >= img->height ||
-	      px < 0 || px >= img->width) continue;
-	  sum += IMG_ELEM( img, py, px) * IMG_ELEM( psf[d], y, x);
+	  n += IMG_ELEM( psf[d], y, x);
+	  int py = h + y - psf[d]->height / 2;
+	  int px = w + x - psf[d]->width / 2;
+	  if( py < 0 || py >= img->height || px < 0 || px >= img->width ) 
+	    continue;
+	  else
+	    s += (double)IMG_ELEM(img, py, px ) * IMG_ELEM( psf[d], y, x);
 	}
       }
-      IMG_ELEM( dst, h, w ) = sum / norm[d];
-      //printf("h = %d, w = %d, d = %d,  %lf\n", h, w, d, sum/norm[d]);
+      s /= n;
+      s = (s > 255)? 255 : s;
+      IMG_ELEM( dst, h, w ) = s;
     }
   }
-
   return dst;
-
 }

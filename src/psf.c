@@ -195,7 +195,6 @@ void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
       flipImage( tmp2, 1, 1);
     }
 
-    printf("copy\n");
 
     // copy to mat and pass to img1, img2
     Mat mat1 = matrixAlloc( tmp1->height, tmp1->width);
@@ -219,7 +218,6 @@ void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
     fftw_execute( plan1 );
     fftw_execute( plan2 );
 
-    printf("FFT\n");
 
     // merge img1 and img2 as linear interpolation
     double r = size - (int)size;
@@ -228,12 +226,8 @@ void makeBlurPSFMat( IMG* aperture, double param[2], Mat dst[MAX_DISPARITY],
       result[i][1] = (1-r) * img1[i][1] + r * img2[i][1];
     }
 
-    printf("merge\n");
-
     // IDFT
     fftw_execute( planResult );
-
-    printf("IDFT\n");
 
     // copy result to dst
     dst[disp] = matrixAlloc( height, width );
