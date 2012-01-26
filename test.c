@@ -55,7 +55,7 @@ int main( int argc, char* argv[]){
 void mouseRefocus(int event, int x, int y, int flags, void *param)// マウスのコールバック
 {
   if( event == CV_EVENT_LBUTTONDOWN ){
-
+    printf("max disparity : %d\n", MAX_DISPARITY);
     // input paramters
     int d = IMG_ELEM( disparityMap, y, x);
     double diameter;
@@ -91,14 +91,14 @@ void mouseRefocus(int event, int x, int y, int flags, void *param)// マウス�
 IMG* refocusWithPSFMap( IMG* img, IMG* dispMap, IMG* psf[MAX_DISPARITY*2])
 {
   int h, w;
-  IMG* dst = createImage( img->width, img->height );
+  IMG* dst = createImage( img->height, img->width );
 
   convertScaleImage( dst, dst, 0.0, 0.0 );
 
   for( h = 0; h < dst->height; ++h ){
     for( w = 0; w < dst->width; ++w){
       int d = IMG_ELEM( dispMap, h, w);
-      if( d < 10 ){
+      if( d < MIN_DISPARITY  || d >= MAX_DISPARITY){
 	IMG_ELEM(dst, h, w ) = IMG_ELEM( img, h, w );
 	continue;
       }
